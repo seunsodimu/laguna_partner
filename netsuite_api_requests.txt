@@ -1,0 +1,38 @@
+# Query cURL
+
+curl --location 'https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/query/v1/suiteql' \
+--header 'Content-Type: application/json' \
+--header 'Prefer: transient' \
+--header 'Authorization: OAuth realm="11134099_SB1",oauth_consumer_key="3f33b52a89cf7f188ea268d3ac45bc9d541cd5bffa978f909b6f41caaf0ae7c8",oauth_token="abdf71349257fb118169bd9a790450e44c9cc9591cc36ecd6f33a53cb9602bf3",oauth_signature_method="HMAC-SHA256",oauth_timestamp="1758210488",oauth_nonce="iqtiZ96n9WL",oauth_version="1.0",oauth_signature="KKdLZlgIzlJ2SSi5ZGPKLgUeyCrc7r2v8jmG1SkFg3w%3D"' \
+--data '{
+    "q": {query}
+}'
+
+# GET all vendors query (sample response in /sample_responses/all_vendors.json)
+ "SELECT * FROM Vendor WHERE email IS NOT EMPTY AND custentitycustentity_portalaccess ='T'"
+
+
+# GET open purchase orders for a vendor query (Sample response in /sample_responses/vendor_open_purchase_orders.json)
+"SELECT * FROM transaction WHERE type='PurchOrd' AND entity=1697 AND status IN ('B', 'E', 'F', 'H')"
+
+# Retrieve a purchase order cURL (sample response in /sample_responses/purchase_order.json)
+curl --location 'https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/{id}?expandSubResources=true' \
+--header 'Content-Type: application/json' \
+--header 'Prefer: transient' \
+--header 'Authorization: OAuth realm="11134099_SB1",oauth_consumer_key="3f33b52a89cf7f188ea268d3ac45bc9d541cd5bffa978f909b6f41caaf0ae7c8",oauth_token="abdf71349257fb118169bd9a790450e44c9cc9591cc36ecd6f33a53cb9602bf3",oauth_signature_method="HMAC-SHA256",oauth_timestamp="1758211527",oauth_nonce="uX3MS5kmTPZ",oauth_version="1.0",oauth_signature="ViO%2BHW8hMDNUUEV0wKfo46TmEO1ZgeqcpdUGIMccbfo%3D"'
+
+# GET Dealers query (sample response in /sample_responses/all_dealers.json)
+"SELECT * FROM customer WHERE isperson='F'"
+
+# GET admin users query (sample response in /sample_responses/admin_emp.json)
+"SELECT * FROM employee WHERE custentitycustentity_portalaccess='T'"
+
+# GET items for dealer query (sample response in /sample_responses/items.json)
+"SELECT * FROM item WHERE custitem41='Y'"
+
+
+# Purchase order statuses:
+B = Pending Received
+E = Partially Received
+F = Pending Billing/Partially Received
+H = Pending Billing

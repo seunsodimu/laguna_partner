@@ -1,0 +1,652 @@
+{
+    "links": [
+        {
+            "rel": "self",
+            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211?expandSubResources=true"
+        }
+    ],
+    "approvalStatus": {
+        "id": "2",
+        "refName": "Approved"
+    },
+    "balance": 0,
+    "billAddress": "A.C.M.<br>I 42017 Nocvellare (RE) - Italy<br>Via A. Einstein 7<br>Italy",
+    "billingAddress": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/billingAddress"
+            }
+        ],
+        "addr1": "I 42017 Nocvellare (RE) - Italy",
+        "addressee": "A.C.M.",
+        "addrPhone": "+39 0522 661284",
+        "addrText": "A.C.M.\nI 42017 Nocvellare (RE) - Italy\nVia A. Einstein 7\nItaly",
+        "city": "Via A.",
+        "country": {
+            "id": "IT",
+            "refName": "Italy"
+        },
+        "override": true,
+        "state": "Einstein",
+        "zip": "7"
+    },
+    "billingAddress_text": "A.C.M.<br>I 42017 Nocvellare (RE) - Italy<br>Via A. Einstein 7<br>Italy",
+    "createdDate": "2025-05-17T20:25:00Z",
+    "currency": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/currency/4"
+            }
+        ],
+        "id": "4",
+        "refName": "Euro"
+    },
+    "custbody17": "apinbox@lagunatools.com",
+    "custbody_atlas_no_hdn": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_atlas_appr_by_creator/2"
+            }
+        ],
+        "id": "2",
+        "refName": "No"
+    },
+    "custbody_atlas_yes_hdn": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_atlas_appr_by_creator/1"
+            }
+        ],
+        "id": "1",
+        "refName": "Yes"
+    },
+    "custbody_ava_is_sellerimporter": false,
+    "custbody_ava_sendimportaddress": false,
+    "custbody_ava_subsidiaryaddress1": "744 Refuge Way Suite 200",
+    "custbody_ava_subsidiaryaddressee": "Laguna Tools, Inc",
+    "custbody_ava_subsidiarycity": "Grand Prairie",
+    "custbody_ava_subsidiarycountry": "United States",
+    "custbody_ava_subsidiarystate": "TX",
+    "custbody_ava_subsidiaryzip": "75050",
+    "custbody_bol": "MEDU6757680",
+    "custbody_cash_register": false,
+    "custbody_dake_confirmed_by_vendor": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_dake_vendor_status/2"
+            }
+        ],
+        "id": "2",
+        "refName": "Not Confirmed"
+    },
+    "custbody_is_expense_po": false,
+    "custbody_link_so": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/custbody_link_so"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_lt_do_not_email": false,
+    "custbody_lt_next_approver": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/employee/147"
+            }
+        ],
+        "id": "147",
+        "refName": "Richard Lee"
+    },
+    "custbody_nondeductible_processed": false,
+    "custbody_nondeductible_ref_tran": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/custbody_nondeductible_ref_tran"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_nst_swms_v3_package_boxes": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/custbody_nst_swms_v3_package_boxes"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_purchase_order_type": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_purchase_order_type/1"
+            }
+        ],
+        "id": "1",
+        "refName": "Inventory"
+    },
+    "custbody_report_timestamp": "17/05/2025 13:25:51",
+    "custbody_requested_parts_id": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/custbody_requested_parts_id"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_requestor": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/custbody_requestor"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_sales_rep": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/employee/127"
+            }
+        ],
+        "id": "127",
+        "refName": "lingjing li"
+    },
+    "custbody_sii_article_72_73": false,
+    "custbody_sii_not_reported_in_time": false,
+    "custbody_stc_amount_after_discount": 1252.88,
+    "custbody_stc_tax_after_discount": 0.0,
+    "custbody_stc_total_after_discount": 1252.88,
+    "department": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+            }
+        ],
+        "id": "3",
+        "refName": "Sales: Wholesale"
+    },
+    "dueDate": "2025-06-06",
+    "email": "export@acmitaly.it",
+    "entity": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1297"
+            }
+        ],
+        "id": "1297",
+        "refName": "A.C.M. (Wire)"
+    },
+    "exchangeRate": 1.072711,
+    "expense": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/expense"
+            }
+        ],
+        "items": [],
+        "totalResults": 0
+    },
+    "externalId": "10804985",
+    "id": "1211",
+    "incoTerm": {
+        "links": [],
+        "id": "1",
+        "refName": "FOB"
+    },
+    "item": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item"
+            }
+        ],
+        "items": [
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/1"
+                    }
+                ],
+                "amount": 738.0,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/classification/39"
+                        }
+                    ],
+                    "id": "39",
+                    "refName": "Parts & Accessories : Accessory : Other"
+                },
+                "custcol_15529_eft_enabled": false,
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/account/353"
+                        }
+                    ],
+                    "id": "353",
+                    "refName": "Parts - Bandsaws"
+                },
+                "custcol_ava_assetaccounttext": "Parts - Bandsaws",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_expenseaccounttext": "COGS - Parts & Accessories",
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_item": "AB00002",
+                "custcol_ava_marginscheme": false,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_travelagentscheme": false,
+                "custcol_ava_upccode": "195444006609",
+                "custcol_dake_so_backlog_item": true,
+                "custcol_est_delivery_date": "2025-06-27",
+                "custcol_options": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_po_delivery_options/2"
+                        }
+                    ],
+                    "id": "2",
+                    "refName": "On the Water"
+                },
+                "custcol_scm_item_parent": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/3579"
+                        }
+                    ],
+                    "id": "3579",
+                    "refName": "3579"
+                },
+                "custcol_scm_lc_autocalc": false,
+                "custcol_scm_track_landed_cost": true,
+                "custcol_shipdate": "2025-04-18",
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 200,
+                "custcolweight": 25.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/1/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/1/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isBillable": false,
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/14485"
+                        }
+                    ],
+                    "id": "14485",
+                    "refName": "Accessory : Bandsaw : AB00002 Accessory - Mobility Kit Acm 16HD/18 and 20"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "leadTime": 122,
+                "line": 1,
+                "linked": true,
+                "linkedOrder": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/1/linkedOrder"
+                        }
+                    ],
+                    "count": 0,
+                    "hasMore": false,
+                    "items": [],
+                    "offset": 0,
+                    "totalResults": 0
+                },
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "matchBillToReceipt": false,
+                "printItems": false,
+                "quantity": 8.0,
+                "quantityAvailable": 18.0,
+                "quantityBilled": 0.0,
+                "quantityOnHand": 19.0,
+                "quantityOnShipments": 8.0,
+                "quantityReceived": 8.0,
+                "rate": 92.25,
+                "units": "18",
+                "vendorName": "5400850"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/2"
+                    }
+                ],
+                "amount": 514.88,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/classification/132"
+                        }
+                    ],
+                    "id": "132",
+                    "refName": "Parts & Accessories : Parts"
+                },
+                "custcol_15529_eft_enabled": false,
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/account/353"
+                        }
+                    ],
+                    "id": "353",
+                    "refName": "Parts - Bandsaws"
+                },
+                "custcol_ava_assetaccounttext": "Parts - Bandsaws",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_expenseaccounttext": "COGS - Parts & Accessories",
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_item": "C012053",
+                "custcol_ava_marginscheme": false,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_travelagentscheme": false,
+                "custcol_ava_upccode": "195444031670",
+                "custcol_dake_so_backlog_item": true,
+                "custcol_est_delivery_date": "2025-06-27",
+                "custcol_options": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_po_delivery_options/2"
+                        }
+                    ],
+                    "id": "2",
+                    "refName": "On the Water"
+                },
+                "custcol_scm_item_parent": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/3495"
+                        }
+                    ],
+                    "id": "3495",
+                    "refName": "3495"
+                },
+                "custcol_scm_lc_autocalc": false,
+                "custcol_scm_track_landed_cost": true,
+                "custcol_shipdate": "2025-04-18",
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 32,
+                "custcolweight": 1.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/2/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/2/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isBillable": false,
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/11103"
+                        }
+                    ],
+                    "id": "11103",
+                    "refName": "Part : Bandsaw : C012053 THROAT PLATE ACM"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "leadTime": 122,
+                "line": 2,
+                "linked": true,
+                "linkedOrder": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/2/linkedOrder"
+                        }
+                    ],
+                    "count": 0,
+                    "hasMore": false,
+                    "items": [],
+                    "offset": 0,
+                    "totalResults": 0
+                },
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "matchBillToReceipt": false,
+                "printItems": false,
+                "quantity": 32.0,
+                "quantityAvailable": 103.0,
+                "quantityBilled": 0.0,
+                "quantityOnHand": 107.0,
+                "quantityOnShipments": 32.0,
+                "quantityReceived": 32.0,
+                "rate": 16.09,
+                "units": "18",
+                "vendorName": "5210005"
+            }
+        ],
+        "totalResults": 2
+    },
+    "lastModifiedDate": "2025-08-05T12:50:00Z",
+    "location": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+            }
+        ],
+        "id": "1",
+        "refName": "Laguna Texas"
+    },
+    "memo": "Under reorder point.",
+    "message": "Please ship by our container, with machine order PO42795",
+    "nextApprover": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/employee/147"
+            }
+        ],
+        "id": "147",
+        "refName": "Richard Lee"
+    },
+    "orderStatus": {
+        "id": "F",
+        "refName": "F"
+    },
+    "originator": "CSV",
+    "prevDate": "2025-02-28",
+    "shipAddress": "Laguna Texas<br>744 Refuge Way<br>Suite 200<br>Grand Prairie TX 75050<br>United States<br>(949) 474-1200",
+    "shipDate": "2025-04-18",
+    "shipIsResidential": false,
+    "shipOverride": true,
+    "shippingAddress": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/shippingAddress"
+            }
+        ],
+        "addr1": "744 Refuge Way",
+        "addr2": "Suite 200",
+        "addressee": "Laguna Texas",
+        "addrPhone": "9494741200",
+        "addrText": "Laguna Texas<br>744 Refuge Way<br>Suite 200<br>Grand Prairie TX 75050<br>United States<br>(949) 474-1200",
+        "city": "Grand Prairie",
+        "country": {
+            "id": "US",
+            "refName": "United States"
+        },
+        "override": true,
+        "state": "TX",
+        "zip": "75050"
+    },
+    "shippingAddress_text": "Laguna Texas<br>744 Refuge Way<br>Suite 200<br>Grand Prairie TX 75050<br>United States<br>(949) 474-1200",
+    "source": {
+        "id": "CSV",
+        "refName": "CSV"
+    },
+    "status": {
+        "id": "Pending Bill",
+        "refName": "Pending Bill"
+    },
+    "subsidiary": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/subsidiary/1"
+            }
+        ],
+        "id": "1",
+        "refName": "Laguna Tools, Inc"
+    },
+    "terms": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/term/2"
+            }
+        ],
+        "id": "2",
+        "refName": "Net 30"
+    },
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 1252.88,
+    "tranDate": "2025-02-28",
+    "tranId": "PO43087",
+    "transactionNumber": "PURCHORD930"
+}

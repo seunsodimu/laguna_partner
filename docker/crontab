@@ -1,0 +1,16 @@
+# Laguna Partners Portal Cron Jobs
+# Run sync scripts at scheduled intervals
+
+# Sync accounts and users daily at 2 AM
+0 2 * * * cd /var/www/html && php scripts/sync-accounts.php >> /var/www/html/logs/cron.log 2>&1
+
+# Sync purchase orders every 4 hours
+0 */4 * * * cd /var/www/html && php scripts/sync-purchase-orders.php >> /var/www/html/logs/cron.log 2>&1
+
+# Sync items every 6 hours
+0 */6 * * * cd /var/www/html && php scripts/sync-items.php >> /var/www/html/logs/cron.log 2>&1
+
+# Cleanup expired OTP codes daily at 3 AM
+0 3 * * * cd /var/www/html && php scripts/cleanup-otp.php >> /var/www/html/logs/cron.log 2>&1
+
+# Empty line required at end of crontab

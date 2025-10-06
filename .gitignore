@@ -1,0 +1,56 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# Vendor directory
+/vendor/
+
+# Composer files
+composer.lock
+
+# Logs
+/logs/*.log
+/logs/*
+!/logs/.gitkeep
+
+# Uploads
+/uploads/*
+!/uploads/.gitkeep
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Node modules (if using npm)
+node_modules/
+package-lock.json
+
+# Build files
+/build/
+/dist/
+
+# Cache
+/cache/*
+!/cache/.gitkeep
+
+# Credentials
+config/credentials.php
+
+# Database dumps
+*.sql
+!database/schema.sql
