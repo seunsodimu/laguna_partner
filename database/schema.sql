@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS `sync_logs` (
     `records_processed` INT DEFAULT 0,
     `records_created` INT DEFAULT 0,
     `records_updated` INT DEFAULT 0,
+    `records_failed` INT DEFAULT 0,
     `error_message` LONGTEXT,
     `synced_count` INT DEFAULT 0,
     `started_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
