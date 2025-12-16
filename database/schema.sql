@@ -188,6 +188,7 @@ CREATE TABLE IF NOT EXISTS `sync_logs` (
     `sync_type` ENUM('accounts', 'users', 'purchase_orders', 'items') NOT NULL,
     `last_sync` TIMESTAMP,
     `status` VARCHAR(50),
+    `started_by` VARCHAR(255),
     `error_message` LONGTEXT,
     `synced_count` INT DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
