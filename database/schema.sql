@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `accounts` (
     `zip_code` VARCHAR(20),
     `country` VARCHAR(100),
     `is_active` TINYINT(1),
+  `netsuite_data` json DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX `idx_type` (`type`),
