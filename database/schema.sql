@@ -190,10 +190,12 @@ CREATE TABLE IF NOT EXISTS `sync_logs` (
     `status` VARCHAR(50),
     `started_by` VARCHAR(255),
     `records_processed` INT DEFAULT 0,
+    `records_created` INT DEFAULT 0,
+    `records_updated` INT DEFAULT 0,
     `error_message` LONGTEXT,
     `synced_count` INT DEFAULT 0,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `started_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `completed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `unique_sync_type` (`sync_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
