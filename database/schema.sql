@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS laguna_partner;
+USE laguna_partner;
+
 -- Base Schema for Laguna Partners Portal
 -- Created: 2025
 
