@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `accounts` (
     `netsuite_id` INT,
     `email` VARCHAR(255),
     `contact_phone` VARCHAR(50),
+  `phone` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
     `address` TEXT,
     `city` VARCHAR(100),
     `state` VARCHAR(50),

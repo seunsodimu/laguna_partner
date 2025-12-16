@@ -345,7 +345,8 @@ class SyncService {
                     'first_name' => $buyer['firstname'] ?? null,
                     'last_name' => $buyer['lastname'] ?? null,
                     'netsuite_id' => $buyer['id'],
-                    'status' => ($buyer['isinactive'] ?? 'F') === 'F' ? 'active' : 'inactive'
+                    'is_active' => ($buyer['isinactive'] ?? 'F') === 'F' ? 1 : 0
+
                 ];
 
                 if ($user) {
