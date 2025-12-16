@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS `sync_logs` (
     `last_sync` TIMESTAMP,
     `status` VARCHAR(50),
     `started_by` VARCHAR(255),
+    `records_processed` INT DEFAULT 0,
     `error_message` LONGTEXT,
     `synced_count` INT DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
