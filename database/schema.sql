@@ -70,6 +70,45 @@ CREATE TABLE IF NOT EXISTS `email_templates` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `email_templates`
+--
+
+INSERT INTO `email_templates` (`id`, `name`, `subject`, `body`, `variables`, `created_at`, `updated_at`) VALUES
+(1, 'otp_login', 'Your Login Code for Laguna Partners Portal', 'Hello,\n\nYour one-time password (OTP) for accessing the Laguna Partners Portal is:\n\n{{otp_code}}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this code, please ignore this email.\n\nBest regards,\nLaguna Tools Team', '[\"otp_code\", \"user_email\"]', '2025-11-04 20:05:05', '2025-11-04 20:05:05'),
+(2, 'vendor_po_update', 'Purchase Order Updated - {{po_number}}', 'Hello,\n\nPurchase Order {{po_number}} has been updated by the vendor.\n\n**Changes Made:**\n{{changes}}\n\n**Purchase Order Details:**\n- PO Number: {{po_number}}\n- Vendor: {{vendor_name}}\n- Total Amount: {{total_amount}}\n- Status: {{status}}\n\n**Updated Fields:**\n{{updated_fields}}\n\nPlease review and approve these changes in the portal.\n\nView PO: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"po_number\", \"vendor_name\", \"total_amount\", \"status\", \"changes\", \"updated_fields\", \"portal_link\"]', '2025-11-04 20:05:05', '2025-11-04 20:05:05'),
+(3, 'buyer_approve_request', 'Purchase Order Changes Approved - {{po_number}}', 'Hello,\n\nThe changes you requested for Purchase Order {{po_number}} have been approved by the buyer.\n\n**Purchase Order Details:**\n- PO Number: {{po_number}}\n- Total Amount: {{total_amount}}\n- Status: {{status}}\n\n**Approved Changes:**\n{{approved_changes}}\n\nThese changes have been synced to NetSuite.\n\nView PO: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"po_number\", \"total_amount\", \"status\", \"approved_changes\", \"portal_link\"]', '2025-11-04 20:05:05', '2025-11-04 20:05:05'),
+(4, 'item_in_stock', 'Item Now Available - {{item_name}}', 'Hello,\n\nGood news! The item you requested to be notified about is now in stock.\n\n**Item Details:**\n- Name: {{item_name}}\n- SKU: {{item_sku}}\n- Quantity Available: {{quantity}}\n\nView Item: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"item_name\", \"item_sku\", \"quantity\", \"portal_link\"]', '2025-11-04 20:05:05', '2025-11-04 20:05:05'),
+(5, 'item_out_of_stock', 'Item Out of Stock - {{item_name}}', 'Hello,\n\nThe item you requested to be notified about is now out of stock.\n\n**Item Details:**\n- Name: {{item_name}}\n- SKU: {{item_sku}}\n\nWe will notify you when it becomes available again.\n\nView Item: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"item_name\", \"item_sku\", \"portal_link\"]', '2025-11-04 20:05:05', '2025-11-04 20:05:05'),
+(6, 'item_low_stock', 'Item Low Stock Alert - {{item_name}}', 'Hello,\n\nThe item you requested to be notified about is running low on stock.\n\n**Item Details:**\n- Name: {{item_name}}\n- SKU: {{item_sku}}\n- Quantity Available: {{quantity}}\n\nView Item: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"item_name\", \"item_sku\", \"quantity\", \"portal_link\"]', '2025-11-04 20:05:05', '2025-11-04 20:05:05'),
+(7, 'invoice_submitted', 'Invoice Submitted for Review - {{invoice_number}}', 'Hello,\n\nA new invoice has been submitted by vendor {{vendor_name}} and requires your review.\n\n**Invoice Details:**\n- Invoice #: {{invoice_number}}\n- Vendor: {{vendor_name}}\n- Amount: {{amount_total}} {{currency}}\n- Invoice Date: {{invoice_date}}\n- Due Date: {{due_date}}\n- PO Reference: {{po_number}}\n\n**Status:** {{status}}\n\nPlease review the invoice and either approve or request corrections in the portal.\n\nView Invoice: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"invoice_number\", \"vendor_name\", \"amount_total\", \"currency\", \"invoice_date\", \"due_date\", \"po_number\", \"status\", \"portal_link\"]', '2025-11-06 16:02:24', '2025-11-06 16:24:34'),
+(8, 'invoice_approved', 'Invoice Approved - {{invoice_number}}', 'Hello,\n\nYour invoice has been approved and is now being processed for payment.\n\n**Invoice Details:**\n- Invoice #: {{invoice_number}}\n- Amount: {{amount_total}} {{currency}}\n- Due Date: {{due_date}}\n- Estimated Payment Date: {{estimated_payment_date}}\n\n**Status:** {{status}}\n\nYou can track payment status in the portal.\n\nView Invoice: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"invoice_number\", \"amount_total\", \"currency\", \"due_date\", \"estimated_payment_date\", \"status\", \"portal_link\"]', '2025-11-06 16:02:24', '2025-11-06 16:24:34'),
+(9, 'invoice_needs_correction', 'Invoice Needs Correction - {{invoice_number}}', 'Hello,\n\nYour invoice {{invoice_number}} requires corrections before it can be approved.\n\n**Invoice Details:**\n- Invoice #: {{invoice_number}}\n- Amount: {{amount_total}} {{currency}}\n\n**Reason for Request:**\n{{correction_reason}}\n\nPlease review the notes in the portal and resubmit the corrected invoice.\n\nView Invoice: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"invoice_number\", \"amount_total\", \"currency\", \"correction_reason\", \"portal_link\"]', '2025-11-06 16:02:24', '2025-11-06 16:24:34'),
+(10, 'payment_processed', 'Payment Processed - {{invoice_number}}', 'Hello,\n\nPayment for your invoice {{invoice_number}} has been processed.\n\n**Payment Details:**\n- Invoice #: {{invoice_number}}\n- Amount Paid: {{amount_paid}} {{currency}}\n- Payment Date: {{payment_date}}\n- Payment Method: {{payment_method}}\n- Expected Arrival: {{expected_arrival_date}}\n- Reference #: {{reference_number}}\n\nYou can download your payment receipt and remittance advice from the portal.\n\nView Payment: {{portal_link}}\n\nBest regards,\nLaguna Tools Team', '[\"invoice_number\", \"amount_paid\", \"currency\", \"payment_date\", \"payment_method\", \"expected_arrival_date\", \"reference_number\", \"portal_link\"]', '2025-11-06 16:02:24', '2025-11-06 16:24:34'),
+(12, 'po_rejection', 'Purchase Order {{po_number}} Rejected', '<html>\r\n<head>\r\n  <style>\r\n    body { font-family: Arial, sans-serif; color: #333; }\r\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\r\n    .header { background-color: #d9534f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }\r\n    .content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; }\r\n    .po-details { background-color: white; padding: 15px; border-left: 4px solid #d9534f; margin: 15px 0; }\r\n    .footer { background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 5px 5px; }\r\n    .button { display: inline-block; background-color: #d9534f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 3px; margin: 10px 0; }\r\n  </style>\r\n</head>\r\n<body>\r\n  <div class=\"container\">\r\n    <div class=\"header\">\r\n      <h2>Purchase Order Rejected</h2>\r\n    </div>\r\n    <div class=\"content\">\r\n      <p>Dear Buyer,</p>\r\n      <p><strong>{{vendor_name}}</strong> has rejected the following purchase order:</p>\r\n      <div class=\"po-details\">\r\n        <p><strong>PO Number:</strong> {{po_number}}</p>\r\n        <p><strong>Total Amount:</strong> {{total_amount}}</p>\r\n        <p><strong>Rejected Date:</strong> {{rejected_date}}</p>\r\n      </div>\r\n      <h3>Rejection Reason:</h3>\r\n      <p>{{rejection_reason}}</p>\r\n      <p>Please contact the vendor for more information or take appropriate action.</p>\r\n      <p>\r\n        <a href=\"{{portal_link}}\" class=\"button\">View PO Details</a>\r\n      </p>\r\n    </div>\r\n    <div class=\"footer\">\r\n      <p>Laguna Partners Portal</p>\r\n      <p>This is an automated notification. Please do not reply to this email.</p>\r\n    </div>\r\n  </div>\r\n</body>\r\n</html>', '{\"po_number\": \"string\", \"portal_link\": \"url\", \"vendor_name\": \"string\", \"total_amount\": \"string\", \"rejected_date\": \"string\", \"rejection_reason\": \"string\"}', '2025-11-20 16:40:15', '2025-11-20 16:40:15');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `email_templates`
+--
+ALTER TABLE `email_templates`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `email_templates`
+--
+ALTER TABLE `email_templates`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+COMMIT;
+
 -- --------------------------------------------------------
 
 --
