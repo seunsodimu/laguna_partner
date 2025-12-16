@@ -183,15 +183,16 @@ CREATE TABLE IF NOT EXISTS `activity_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===== SYNC LOG TABLE =====
-CREATE TABLE IF NOT EXISTS `sync_log` (
+CREATE TABLE IF NOT EXISTS `sync_logs` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `entity_type` VARCHAR(50) NOT NULL,
+    `sync_type` ENUM('accounts', 'users', 'purchase_orders', 'items') NOT NULL,
     `last_sync` TIMESTAMP,
-    `sync_status` VARCHAR(50),
-    `sync_error` TEXT,
+    `status` VARCHAR(50),
+    `error_message` LONGTEXT,
+    `synced_count` INT DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY `unique_entity_type` (`entity_type`)
+    UNIQUE KEY `unique_sync_type` (`sync_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===== INVOICES TABLE =====
