@@ -2,7 +2,7 @@
     "links": [
         {
             "rel": "self",
-            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211?expandSubResources=true"
+            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/?expandSubResources=true"
         }
     ],
     "approvalStatus": {
@@ -10,7 +10,7 @@
         "refName": "Approved"
     },
     "balance": 0,
-    "billAddress": "A.C.M.<br>I 42017 Nocvellare (RE) - Italy<br>Via A. Einstein 7<br>Italy",
+    "billAddress": "A.C.M.\nI 42017 Nocvellare (RE) - Italy\nVia A. Einstein 7\nItaly",
     "billingAddress": {
         "links": [
             {
@@ -31,7 +31,7 @@
         "state": "Einstein",
         "zip": "7"
     },
-    "billingAddress_text": "A.C.M.<br>I 42017 Nocvellare (RE) - Italy<br>Via A. Einstein 7<br>Italy",
+    "billingAddress_text": "A.C.M.\nI 42017 Nocvellare (RE) - Italy\nVia A. Einstein 7\nItaly",
     "createdDate": "2025-05-17T20:25:00Z",
     "currency": {
         "links": [
@@ -44,6 +44,7 @@
         "refName": "Euro"
     },
     "custbody17": "apinbox@lagunatools.com",
+    "custbody7": "2025-12-15",
     "custbody_atlas_no_hdn": {
         "links": [
             {
@@ -185,9 +186,13 @@
     },
     "custbody_sii_article_72_73": false,
     "custbody_sii_not_reported_in_time": false,
-    "custbody_stc_amount_after_discount": 1252.88,
+    "custbody_stc_amount_after_discount": 1253.47,
     "custbody_stc_tax_after_discount": 0.0,
-    "custbody_stc_total_after_discount": 1252.88,
+    "custbody_stc_total_after_discount": 1253.47,
+    "customForm": {
+        "id": "225",
+        "refName": "Laguna Tools - Purchase Order"
+    },
     "department": {
         "links": [
             {
@@ -198,7 +203,7 @@
         "id": "3",
         "refName": "Sales: Wholesale"
     },
-    "dueDate": "2025-06-06",
+    "dueDate": "2025-12-19",
     "email": "export@acmitaly.it",
     "entity": {
         "links": [
@@ -322,6 +327,7 @@
                     "id": "3",
                     "refName": "Sales: Wholesale"
                 },
+                "excludeFromPredictiveRisk": false,
                 "inventoryDetail": {
                     "links": [
                         {
@@ -482,6 +488,7 @@
                     "id": "3",
                     "refName": "Sales: Wholesale"
                 },
+                "excludeFromPredictiveRisk": false,
                 "inventoryDetail": {
                     "links": [
                         {
@@ -555,11 +562,168 @@
                 "rate": 16.09,
                 "units": "18",
                 "vendorName": "5210005"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/3"
+                    }
+                ],
+                "amount": 0.59,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/classification/39"
+                        }
+                    ],
+                    "id": "39",
+                    "refName": "Parts & Accessories : Accessory : Other"
+                },
+                "custcol_15529_eft_enabled": false,
+                "custcol_2663_isperson": false,
+                "custcol_atlas_promise_date": "2025-10-22",
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/account/338"
+                        }
+                    ],
+                    "id": "338",
+                    "refName": "Parts"
+                },
+                "custcol_ava_assetaccounttext": "Parts",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_expenseaccounttext": "COGS - Parts & Accessories",
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_item": "ALED-ADAPTER",
+                "custcol_ava_marginscheme": false,
+                "custcol_ava_travelagentscheme": false,
+                "custcol_dake_so_backlog_item": false,
+                "custcol_est_delivery_date": "2025-10-22",
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_scm_item_parent": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/3475"
+                        }
+                    ],
+                    "id": "3475",
+                    "refName": "3475"
+                },
+                "custcol_scm_lc_autocalc": false,
+                "custcol_scm_track_landed_cost": true,
+                "custcol_statistical_value_base_curr": 0.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "Laguna LED Adapter Black",
+                "excludeFromPredictiveRisk": false,
+                "expectedReceiptDate": "2025-02-28",
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/3/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/3/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isBillable": false,
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/29911"
+                        }
+                    ],
+                    "id": "29911",
+                    "refName": "Accessory : ALED-ADAPTER Laguna LED Adapter Black"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "leadTime": 60,
+                "line": 3,
+                "linked": false,
+                "linkedOrder": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseorder/1211/item/3/linkedOrder"
+                        }
+                    ],
+                    "count": 0,
+                    "hasMore": false,
+                    "items": [],
+                    "offset": 0,
+                    "totalResults": 0
+                },
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "matchBillToReceipt": false,
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 0.0,
+                "quantityBilled": 0.0,
+                "quantityOnHand": 0.0,
+                "quantityReceived": 0.0,
+                "rate": 0.58729704,
+                "units": "18"
             }
         ],
-        "totalResults": 2
+        "totalResults": 3
     },
-    "lastModifiedDate": "2025-08-05T12:50:00Z",
+    "lastModifiedDate": "2025-10-07T17:10:00Z",
     "location": {
         "links": [
             {
@@ -571,7 +735,7 @@
         "refName": "Laguna Texas"
     },
     "memo": "Under reorder point.",
-    "message": "Please ship by our container, with machine order PO42795",
+    "message": "This is the vendor message",
     "nextApprover": {
         "links": [
             {
@@ -583,13 +747,13 @@
         "refName": "Richard Lee"
     },
     "orderStatus": {
-        "id": "F",
-        "refName": "F"
+        "id": "E",
+        "refName": "E"
     },
     "originator": "CSV",
     "prevDate": "2025-02-28",
-    "shipAddress": "Laguna Texas<br>744 Refuge Way<br>Suite 200<br>Grand Prairie TX 75050<br>United States<br>(949) 474-1200",
-    "shipDate": "2025-04-18",
+    "shipAddress": "Laguna Texas\r\n744 Refuge Way\r\nSuite 200\r\nGrand Prairie TX 75050\r\nUnited States\r\n(949) 474-1200",
+    "shipDate": "2025-12-12",
     "shipIsResidential": false,
     "shipOverride": true,
     "shippingAddress": {
@@ -603,7 +767,7 @@
         "addr2": "Suite 200",
         "addressee": "Laguna Texas",
         "addrPhone": "9494741200",
-        "addrText": "Laguna Texas<br>744 Refuge Way<br>Suite 200<br>Grand Prairie TX 75050<br>United States<br>(949) 474-1200",
+        "addrText": "Laguna Texas\r\n744 Refuge Way\r\nSuite 200\r\nGrand Prairie TX 75050\r\nUnited States\r\n(949) 474-1200",
         "city": "Grand Prairie",
         "country": {
             "id": "US",
@@ -613,14 +777,14 @@
         "state": "TX",
         "zip": "75050"
     },
-    "shippingAddress_text": "Laguna Texas<br>744 Refuge Way<br>Suite 200<br>Grand Prairie TX 75050<br>United States<br>(949) 474-1200",
+    "shippingAddress_text": "Laguna Texas\r\n744 Refuge Way\r\nSuite 200\r\nGrand Prairie TX 75050\r\nUnited States\r\n(949) 474-1200",
     "source": {
         "id": "CSV",
         "refName": "CSV"
     },
     "status": {
-        "id": "Pending Bill",
-        "refName": "Pending Bill"
+        "id": "Pending Billing/Partially Received",
+        "refName": "Pending Billing/Partially Received"
     },
     "subsidiary": {
         "links": [
@@ -645,7 +809,7 @@
     "toBeEmailed": false,
     "toBeFaxed": false,
     "toBePrinted": false,
-    "total": 1252.88,
+    "total": 1253.47,
     "tranDate": "2025-02-28",
     "tranId": "PO43087",
     "transactionNumber": "PURCHORD930"

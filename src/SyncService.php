@@ -114,6 +114,9 @@ class SyncService {
                     $stats['created']++;
                 }
 
+                // Sync vendor profile data
+                $this->syncVendorProfile($vendor);
+
                 // Sync users for this vendor
                 $this->syncVendorUsers($vendor);
 
@@ -124,6 +127,34 @@ class SyncService {
         }
 
         return $stats;
+    }
+
+    /**
+     * Sync vendor profile data
+     */
+    private function syncVendorProfile($vendor) {
+        try {
+            // Check if vendor profile exists
+            $existing = $this->db->fetchOne(
+                "SELECT * FROM vendor_profiles WHERE vendor_id = ?",
+                [$vendor['id']]
+            );
+
+            $profileData = [
+                'term' => $vendor['terms'] ?? null
+            ];
+
+            if ($existing) {
+                // Update existing profile
+                $this->db->update('vendor_profiles', $profileData, 'vendor_id = ?', [$vendor['id']]);
+            } else {
+                // Create new profile
+                $profileData['vendor_id'] = $vendor['id'];
+                $this->db->insert('vendor_profiles', $profileData);
+            }
+        } catch (\Exception $e) {
+            error_log("Failed to sync vendor profile for vendor {$vendor['id']}: " . $e->getMessage());
+        }
     }
 
     /**
@@ -303,17 +334,18 @@ class SyncService {
                 }
 
                 $user = $this->db->fetchOne(
-                    "SELECT * FROM users WHERE email = ? AND type = 'buyer'",
+                    "SELECT * FROM users WHERE email = ? AND type = 'user'",
                     [$email]
                 );
 
                 $userData = [
                     'email' => $email,
-                    'type' => 'buyer',
+                    'type' => 'user',
+                    'role' => 'buyer',
                     'first_name' => $buyer['firstname'] ?? null,
                     'last_name' => $buyer['lastname'] ?? null,
                     'netsuite_id' => $buyer['id'],
-                    'is_active' => ($buyer['isinactive'] ?? 'F') === 'F'
+                    'status' => ($buyer['isinactive'] ?? 'F') === 'F' ? 'active' : 'inactive'
                 ];
 
                 if ($user) {
@@ -336,14 +368,21 @@ class SyncService {
     /**
      * Sync purchase orders from NetSuite
      */
-    public function syncPurchaseOrders($startedBy = null) {
+    public function syncPurchaseOrders($startedBy = null, $limit = 1000) {
         $this->syncLogId = $this->startSyncLog('purchase_orders', $startedBy);
 
         try {
             $this->db->beginTransaction();
 
             $purchaseOrders = $this->netsuite->getPurchaseOrders();
-            $stats = ['processed' => 0, 'created' => 0, 'updated' => 0, 'failed' => 0];
+            $stats = ['processed' => 0, 'created' => 0, 'updated' => 0, 'failed' => 0, 'skipped' => 0];
+            
+            $totalPOs = count($purchaseOrders);
+            $stats['total_available'] = $totalPOs;
+
+            // Limit the number of POs to process in one run
+            $purchaseOrders = array_slice($purchaseOrders, 0, $limit);
+            $stats['skipped'] = max(0, $totalPOs - $limit);
 
             foreach ($purchaseOrders as $po) {
                 $stats['processed']++;
@@ -364,6 +403,12 @@ class SyncService {
                     $stats['failed']++;
                     error_log("Failed to sync PO {$po['id']}: " . $e->getMessage());
                 }
+                
+                // Commit every 10 records to avoid long transactions
+                if ($stats['processed'] % 10 === 0) {
+                    $this->db->commit();
+                    $this->db->beginTransaction();
+                }
             }
 
             $this->db->commit();
@@ -371,7 +416,8 @@ class SyncService {
 
             return [
                 'success' => true,
-                'stats' => $stats
+                'stats' => $stats,
+                'records_processed' => $stats['processed']
             ];
 
         } catch (\Exception $e) {
@@ -382,6 +428,41 @@ class SyncService {
                 'success' => false,
                 'error' => $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Sync single purchase order by ID (public method for webhooks/API calls)
+     */
+    public function syncSinglePurchaseOrder($poId) {
+        if (!$poId) {
+            throw new \Exception('Purchase order ID required');
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $poDetails = $this->netsuite->getPurchaseOrder($poId);
+            if (!$poDetails) {
+                throw new \Exception('Purchase order not found in NetSuite');
+            }
+
+            $this->syncPurchaseOrder($poDetails);
+
+            $this->db->commit();
+
+            $existing = $this->db->fetchOne("SELECT id FROM purchase_orders WHERE id = ?", [$poId]);
+
+            return [
+                'success' => true,
+                'message' => $existing ? 'Purchase order updated' : 'Purchase order synced',
+                'po_id' => $poId,
+                'action' => $existing ? 'updated' : 'created'
+            ];
+
+        } catch (\Exception $e) {
+            $this->db->rollback();
+            throw $e;
         }
     }
 
@@ -416,8 +497,8 @@ class SyncService {
         ];
 
         if ($existing) {
-            unset($poData['id']);
-            $this->db->update('purchase_orders', $poData, 'id = ?', [$poDetails['id']]);
+            // unset($poData['id']);
+            // $this->db->update('purchase_orders', $poData, 'id = ?', [$poDetails['id']]);
         } else {
             $this->db->insert('purchase_orders', $poData);
         }

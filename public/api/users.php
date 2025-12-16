@@ -9,13 +9,21 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../src/Database.php';
 require_once __DIR__ . '/../../src/Auth.php';
 
-use App\Database;
-use App\Auth;
+use LagunaPartners\Database;
+use LagunaPartners\Auth;
 
 header('Content-Type: application/json');
 session_start();
 
-// Check authentication and admin access
+$action = $_GET['action'] ?? null;
+
+// Allow public access to get_team_members for messaging
+if ($action === 'get_team_members') {
+    handleGetTeamMembers();
+    exit;
+}
+
+// Check authentication and admin access for other operations
 if (!Auth::check() || !Auth::isAdmin()) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Access denied']);
@@ -350,4 +358,41 @@ function handleDelete($db, $currentUser) {
         'success' => true,
         'message' => 'User deactivated successfully'
     ]);
+}
+
+function handleGetTeamMembers() {
+    $db = Database::getInstance();
+    $type = $_GET['type'] ?? null;
+    
+    if (!$type) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Type parameter required']);
+        return;
+    }
+    
+    $typeMap = [
+        'vendor_to_accounting' => 'buyer',
+        'vendor_to_buyer' => 'buyer'
+    ];
+    
+    $userType = $typeMap[$type] ?? null;
+    
+    if (!$userType) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Invalid type']);
+        return;
+    }
+    
+    try {
+        $users = $db->fetchAll(
+            "SELECT id, first_name, last_name, email FROM users WHERE type = ? AND is_active = 1 ORDER BY first_name, last_name",
+            [$userType]
+        );
+        
+        echo json_encode(['success' => true, 'data' => $users]);
+    } catch (\Exception $e) {
+        error_log("Error getting team members: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Server error']);
+    }
 }

@@ -21,6 +21,34 @@ curl --location 'https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/r
 --header 'Prefer: transient' \
 --header 'Authorization: OAuth realm="11134099_SB1",oauth_consumer_key="3f33b52a89cf7f188ea268d3ac45bc9d541cd5bffa978f909b6f41caaf0ae7c8",oauth_token="abdf71349257fb118169bd9a790450e44c9cc9591cc36ecd6f33a53cb9602bf3",oauth_signature_method="HMAC-SHA256",oauth_timestamp="1758211527",oauth_nonce="uX3MS5kmTPZ",oauth_version="1.0",oauth_signature="ViO%2BHW8hMDNUUEV0wKfo46TmEO1ZgeqcpdUGIMccbfo%3D"'
 
+# To update a purchase order:
+curl --location --request PATCH 'https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/purchaseOrder/{id}' \
+--header 'Content-Type: application/json' \
+--header 'Prefer: transient' \
+--header 'Authorization: OAuth realm="11134099_SB1",oauth_consumer_key="3f33b52a89cf7f188ea268d3ac45bc9d541cd5bffa978f909b6f41caaf0ae7c8",oauth_token="abdf71349257fb118169bd9a790450e44c9cc9591cc36ecd6f33a53cb9602bf3",oauth_signature_method="HMAC-SHA256",oauth_timestamp="1759866881",oauth_nonce="xINd99K2wcm",oauth_version="1.0",oauth_signature="rT66fgBvjDlMSdetasS2zTplevA35tXltPjggTnhlUU%3D"' \
+--data '{
+    "shipdate": {shipdate},
+    "custbody7": {portdate},
+    "custcol_est_delivery_date": {estimateddeliverydate}
+}'
+
+# To add comment to a purchase order:
+curl --location 'https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/message' \
+--header 'Content-Type: application/json' \
+--header 'Prefer: transient' \
+--header 'Authorization: OAuth realm="11134099_SB1",oauth_consumer_key="3f33b52a89cf7f188ea268d3ac45bc9d541cd5bffa978f909b6f41caaf0ae7c8",oauth_token="abdf71349257fb118169bd9a790450e44c9cc9591cc36ecd6f33a53cb9602bf3",oauth_signature_method="HMAC-SHA256",oauth_timestamp="1759934123",oauth_nonce="NWXBfkX8b0e",oauth_version="1.0",oauth_signature="gviT7OwkgsOfMnWS%2FAdDqPYUS2i260CWuBQ0b%2FKFFdY%3D"' \
+--data '{
+    "Subject": "Message from {BuyerName} On Laguna Partner Portal",
+    "message": {message},
+    "entity": {vendorid},
+    "messagetype": "EMAIL",
+    "author": {vendorid},
+    "incoming": true,
+    "transaction": {purchaseorderid},
+    "primaryRecipient":{buyerid},
+    "recipient":buyerid
+}'
+
 # GET Dealers query (sample response in /sample_responses/all_dealers.json)
 "SELECT * FROM customer WHERE isperson='F'"
 

@@ -11,6 +11,13 @@ require_once __DIR__ . '/../../src/Auth.php';
 use LagunaPartners\Auth;
 use LagunaPartners\Database;
 
+// Load environment variables
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv->load();
+
+// Define base path for redirects
+define('BASE_PATH', $_ENV['APP_BASE_PATH'] ?? '/laguna_partner');
+
 Auth::requireAuth(['vendor']);
 
 $db = Database::getInstance();
@@ -43,7 +50,7 @@ include __DIR__ . '/../includes/header.php';
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-6">
-            <h2><i class="bi bi-file-earmark-text"></i> Purchase Orders</h2>
+            <h2><i class="bi bi-file-earmark-text"></i> ::Purchase Orders</h2>
         </div>
         <div class="col-md-6 text-end">
             <?php if (count($accounts) > 1): ?>
@@ -67,6 +74,30 @@ include __DIR__ . '/../includes/header.php';
                     </ul>
                 </div>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-text" style="font-size: 2rem; color: #0d6efd;"></i>
+                    <h5 class="card-title mt-3">Purchase Orders</h5>
+                    <p class="card-text text-muted">View and manage purchase orders</p>
+                    <a href="<?= BASE_PATH ?>/vendor/dashboard.php" class="btn btn-sm btn-primary">View</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-receipt" style="font-size: 2rem; color: #198754;"></i>
+                    <h5 class="card-title mt-3">Invoices</h5>
+                    <p class="card-text text-muted">Submit and track invoices</p>
+                    <a href="<?= BASE_PATH ?>/vendor/invoices.php" class="btn btn-sm btn-success">Manage</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -154,6 +185,9 @@ include __DIR__ . '/../includes/header.php';
                                         <button class="btn btn-sm btn-success" onclick="uploadDoc(<?= $po['id'] ?>)">
                                             <i class="bi bi-upload"></i>
                                         </button>
+                                        <a class="btn btn-sm btn-warning mt-1" href="<?= BASE_PATH ?>/vendor/create-invoice.php?po_id=<?= $po['id'] ?>">
+                                            <i class="bi bi-receipt"></i> Bill this PO
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -170,7 +204,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Purchase Order Details</h5>
+                <h5 class="modal-title">Purchase Order Details:</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="poModalBody">
@@ -184,12 +218,36 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<!-- PO Rejection Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Reject Purchase Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Please provide a reason for rejecting this purchase order. This message will be sent to the buyer.</p>
+                <textarea class="form-control" id="rejectionReason" rows="5" placeholder="Enter rejection reason..."></textarea>
+                <small class="text-muted d-block mt-2">This field is required</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="submitRejection()">Reject PO</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const BASE_PATH = '<?= BASE_PATH ?>';
 let poModal;
+let rejectModal;
+let currentRejectPoId;
 
 document.addEventListener('DOMContentLoaded', function() {
     poModal = new bootstrap.Modal(document.getElementById('poModal'));
+    rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
 });
 
 function viewPO(poId) {
@@ -226,10 +284,13 @@ function displayPODetails(po) {
     let html = `
         <div class="row mb-4">
             <div class="col-md-6">
-                <h4>PO# ${escapeHtml(po.tranid)}</h4>
+                <h4>PO# ${escapeHtml(po.tran_id)}</h4>
                 <p class="text-muted mb-1"><strong>Vendor:</strong> ${escapeHtml(po.company_name || 'N/A')}</p>
                 <p class="text-muted mb-1"><strong>Status:</strong> ${statusMap[po.status] || po.status}</p>
                 <p class="text-muted mb-1"><strong>Created:</strong> ${formatDate(po.created_date)}</p>
+                ${po.vessel_identifier ? `
+                <p><a href="https://www.myshiptracking.com/?mmsi=${encodeURIComponent(po.vessel_identifier || '')}" target="_blank" rel="noopener noreferrer">Track Vessel</a></p>
+                ` : ''}
             </div>
             <div class="col-md-6 text-end">
                 <h4>$${parseFloat(po.total_amount || 0).toFixed(2)}</h4>
@@ -239,24 +300,42 @@ function displayPODetails(po) {
         
         <div class="row mb-4">
             <div class="col-md-4">
-                <label class="form-label"><strong>Port Date</strong></label>
-                <input type="date" class="form-control" id="editPortDate" value="${po.port_date || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label"><strong>Vessel Name</strong></label>
+                <input type="text" class="form-control" id="editVesselName" value="${po.vessel_name || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>Est. Delivery Date</strong></label>
-                <input type="date" class="form-control" id="editEstDelivery" value="${po.estimated_delivery_date || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label"><strong>Vessel Identifier</strong></label>
+                <input type="text" class="form-control" id="editVesselIdentifier" value="${po.vessel_identifier || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>Ship Date</strong></label>
-                <input type="date" class="form-control" id="editShipDate" value="${po.ship_date || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label"><strong>Ex-Factory Date</strong>(Date items depart factory)</label>
+                <input type="date" class="form-control" id="editExpectedFactoryDate" value="${po.expected_factory_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
         </div>
         
-        ${canEdit ? `<div class="mb-3">
-            <button class="btn btn-primary" onclick="savePOChanges(${po.id})">
-                <i class="bi bi-save"></i> Save Changes
-            </button>
-        </div>` : ''}
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label class="form-label"><strong>Vessel Onboard Date</strong>(Date items boards ship)</label>
+                <input type="date" class="form-control" id="editPortDate" value="${po.port_date || ''}" ${!canEdit ? 'disabled' : ''}>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label"><strong>Vessel Ship Date</strong>(Date ship departs origin)</label>
+                <input type="date" class="form-control" id="editShipDate" value="${po.ship_date || ''}" ${!canEdit ? 'disabled' : ''}>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label"><strong>US Delivery Date</strong>(Date items arrive at destination)</label>
+                <input type="date" class="form-control" id="editEstDelivery" value="${po.estimated_delivery_date || ''}" ${!canEdit ? 'disabled' : ''}>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            ${canEdit ? `<button class="btn btn-primary" onclick="savePOChanges(${po.id})">
+                <i class="bi bi-save"></i> Submit Changes
+            </button>` : ''}
+            ${canEdit ? `<button class="btn btn-danger" onclick="showRejectModal(${po.id})">
+                <i class="bi bi-x-circle"></i> Reject PO
+            </button>` : ''}
+        </div>
         
         <ul class="nav nav-tabs mb-3" role="tablist">
             <li class="nav-item">
@@ -278,24 +357,34 @@ function displayPODetails(po) {
                             <tr>
                                 <th>Item</th>
                                 <th>Original Qty</th>
-                                <th>Vendor Qty</th>
-                                <th>Rate</th>
+                                <th>Vendor/Shipped Qty</th>
                                 <th>Amount</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${po.items.map(item => `
+                            ${po.items.map((item, idx) => `
                                 <tr>
                                     <td>${escapeHtml(item.item_name)}</td>
-                                    <td>${item.original_quantity || 0}</td>
-                                    <td>${item.vendor_quantity || item.original_quantity || 0}</td>
-                                    <td>$${parseFloat(item.rate || 0).toFixed(2)}</td>
+                                    <td>${item.quantity || 0}</td>
+                                    <td>
+                                        ${canEdit ? 
+                                            `<input type="number" class="form-control form-control-sm" id="vendorQty_${item.id}" value="${item.vendor_quantity || item.quantity || 0}" min="0" step="0.01">` 
+                                            : `${item.vendor_quantity || item.quantity || 0}`
+                                        }
+                                    </td>
                                     <td>$${parseFloat(item.amount || 0).toFixed(2)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
                 </div>
+                ${canEdit ? `
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-success" onclick="saveVendorQtyChanges(${po.id})">
+                            <i class="bi bi-save"></i> Submit Quantity Changes
+                        </button>
+                    </div>
+                ` : ''}
             </div>
             
             <div class="tab-pane fade" id="commentsTab">
@@ -323,9 +412,25 @@ function displayPODetails(po) {
                     <form id="uploadForm" enctype="multipart/form-data">
                         <input type="hidden" name="po_id" value="${po.id}">
                         <div class="mb-2">
+                            <label class="form-label"><strong>Document Type</strong></label>
+                            <select name="document_type" class="form-select" id="documentType" required>
+                                <option value="">-- Select Document Type --</option>
+                                <option value="BOL">BOL (Bill of Lading)</option>
+                                <option value="Invoice">Invoice</option>
+                                <option value="Receipt">Receipt</option>
+                                <option value="Bills">Bills</option>
+                                <option value="Other">Other (specify)</option>
+                            </select>
+                        </div>
+                        <div class="mb-2" id="otherSpecifyDiv" style="display:none;">
+                            <input type="text" class="form-control" name="other_specify" id="otherSpecify" placeholder="Please specify document type...">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label"><strong>File</strong></label>
                             <input type="file" class="form-control" id="fileInput" name="file" required>
                         </div>
                         <div class="mb-2">
+                            <label class="form-label"><strong>Comments (optional)</strong></label>
                             <textarea class="form-control" name="comment" rows="2" placeholder="Optional comment..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-sm btn-success">
@@ -341,9 +446,10 @@ function displayPODetails(po) {
                                     <div class="flex-grow-1">
                                         <i class="bi bi-file-earmark"></i>
                                         <strong>${escapeHtml(doc.original_filename)}</strong>
+                                        ${doc.document_type ? `<span class="badge bg-info ms-2">${escapeHtml(doc.document_type)}</span>` : ''}
                                         <small class="text-muted ms-2">(${formatFileSize(doc.file_size)})</small>
                                         ${doc.comment ? `<p class="mb-0 mt-1 text-muted small">${escapeHtml(doc.comment)}</p>` : ''}
-                                        <small class="text-muted d-block">${formatDateTime(doc.uploaded_at)}</small>
+                                        <small class="text-muted d-block">${formatDateTime(doc.created_at)}</small>
                                     </div>
                                     <div>
                                         <a href="${BASE_PATH}/api/download.php?id=${doc.id}" class="btn btn-sm btn-outline-primary" title="Download">
@@ -366,11 +472,28 @@ function displayPODetails(po) {
         e.preventDefault();
         uploadDocument(po.id);
     });
+    
+    // Handle "Other" document type option
+    const docTypeSelect = document.getElementById('documentType');
+    if (docTypeSelect) {
+        docTypeSelect.addEventListener('change', function() {
+            const otherDiv = document.getElementById('otherSpecifyDiv');
+            if (this.value === 'Other') {
+                otherDiv.style.display = 'block';
+                document.getElementById('otherSpecify').focus();
+            } else {
+                otherDiv.style.display = 'none';
+            }
+        });
+    }
 }
 
 function savePOChanges(poId) {
     const data = {
         id: poId,
+        vessel_name: document.getElementById('editVesselName').value,
+        vessel_identifier: document.getElementById('editVesselIdentifier').value,
+        expected_factory_date: document.getElementById('editExpectedFactoryDate').value,
         port_date: document.getElementById('editPortDate').value,
         estimated_delivery_date: document.getElementById('editEstDelivery').value,
         ship_date: document.getElementById('editShipDate').value
@@ -429,9 +552,63 @@ function addComment(poId) {
     });
 }
 
+function saveVendorQtyChanges(poId) {
+    // Get all vendor quantity inputs
+    const qtyInputs = document.querySelectorAll('[id^="vendorQty_"]');
+    const updates = [];
+    
+    qtyInputs.forEach(input => {
+        const itemId = input.id.replace('vendorQty_', '');
+        const qty = input.value;
+        if (qty) {
+            updates.push({ item_id: itemId, vendor_quantity: qty });
+        }
+    });
+    
+    if (updates.length === 0) {
+        showToast('No quantity changes to save', 'info');
+        return;
+    }
+    
+    fetch(`${BASE_PATH}/api/purchase-orders.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'update_vendor_quantities',
+            po_id: poId,
+            items: updates
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            viewPO(poId);
+        } else {
+            showToast('Error: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to save quantity changes', 'error');
+    });
+}
+
 function uploadDocument(poId) {
     const form = document.getElementById('uploadForm');
     const formData = new FormData(form);
+    
+    // Handle "Other" document type - combine with specification
+    let docType = formData.get('document_type');
+    if (docType === 'Other') {
+        const otherSpecify = formData.get('other_specify');
+        if (!otherSpecify || !otherSpecify.trim()) {
+            showToast('Please specify the document type for "Other"', 'error');
+            return;
+        }
+        docType = `Other: ${otherSpecify}`;
+        formData.set('document_type', docType);
+    }
     
     fetch(`${BASE_PATH}/api/upload.php`, {
         method: 'POST',
@@ -449,6 +626,46 @@ function uploadDocument(poId) {
     .catch(error => {
         console.error('Error:', error);
         showToast('Failed to upload document', 'error');
+    });
+}
+
+function showRejectModal(poId) {
+    currentRejectPoId = poId;
+    document.getElementById('rejectionReason').value = '';
+    poModal.hide();
+    rejectModal.show();
+}
+
+function submitRejection() {
+    const reason = document.getElementById('rejectionReason').value.trim();
+    
+    if (!reason) {
+        showToast('Rejection reason is required', 'error');
+        return;
+    }
+    
+    fetch(`${BASE_PATH}/api/purchase-orders.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'reject_po',
+            po_id: currentRejectPoId,
+            rejection_reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            rejectModal.hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Error: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to reject PO', 'error');
     });
 }
 

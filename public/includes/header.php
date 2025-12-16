@@ -22,12 +22,22 @@
                     <?php
                     $user = \LagunaPartners\Auth::user();
                     if ($user):
-                        switch ($user['type']):
+                        switch ($user['role']):
                             case 'vendor':
                     ?>
                                 <li class="nav-item">
                                     <a class="nav-link" href="<?= BASE_PATH ?>/vendor/dashboard.php">
                                         <i class="bi bi-file-earmark-text"></i> Purchase Orders
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= BASE_PATH ?>/vendor/invoices.php">
+                                        <i class="bi bi-receipt"></i> Invoices
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= BASE_PATH ?>/vendor/messages.php">
+                                        <i class="bi bi-chat-square-text"></i> Messaging
                                     </a>
                                 </li>
                     <?php
@@ -46,6 +56,25 @@
                                 </li>
                     <?php
                                 break;
+                                case 'accounting':
+                    ?>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= BASE_PATH ?>/buyer/dashboard.php">
+                                        <i class="bi bi-file-earmark-text"></i> Purchase Orders
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= BASE_PATH ?>/buyer/invoices.php">
+                                        <i class="bi bi-receipt"></i> Invoices
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= BASE_PATH ?>/buyer/messages.php">
+                                        <i class="bi bi-chat-square-text"></i> Messaging
+                                    </a>
+                                </li>
+                    <?php
+                                break;
                             case 'buyer':
                     ?>
                                 <li class="nav-item">
@@ -54,8 +83,13 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="<?= BASE_PATH ?>/buyer/notifications.php">
-                                        <i class="bi bi-bell"></i> Notifications
+                                    <a class="nav-link" href="<?= BASE_PATH ?>/buyer/invoices.php">
+                                        <i class="bi bi-receipt"></i> Invoices
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= BASE_PATH ?>/buyer/messages.php">
+                                        <i class="bi bi-chat-square-text"></i> Messaging
                                     </a>
                                 </li>
                     <?php

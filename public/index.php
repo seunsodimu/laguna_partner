@@ -22,19 +22,29 @@ session_start();
 // Redirect if already logged in
 if (Auth::check()) {
     $user = Auth::user();
-    switch ($user['type']) {
-        case 'admin':
-            header('Location: ' . BASE_PATH . '/admin/dashboard.php');
-            break;
-        case 'buyer':
-            header('Location: ' . BASE_PATH . '/buyer/dashboard.php');
-            break;
-        case 'vendor':
-            header('Location: ' . BASE_PATH . '/vendor/dashboard.php');
-            break;
-        case 'dealer':
-            header('Location: ' . BASE_PATH . '/dealer/dashboard.php');
-            break;
+    if ($user['type'] === 'user') {
+        // Route based on role
+        $role = $user['role'] ?? 'buyer';
+        switch ($role) {
+            case 'admin':
+                header('Location: ' . BASE_PATH . '/admin/dashboard.php');
+                break;
+            case 'accounting':
+            case 'buyer':
+            default:
+                header('Location: ' . BASE_PATH . '/buyer/dashboard.php');
+                break;
+        }
+    } else {
+        // Route for vendor/dealer
+        switch ($user['type']) {
+            case 'vendor':
+                header('Location: ' . BASE_PATH . '/vendor/dashboard.php');
+                break;
+            case 'dealer':
+                header('Location: ' . BASE_PATH . '/dealer/dashboard.php');
+                break;
+        }
     }
     exit;
 }
@@ -154,21 +164,20 @@ if (Auth::check()) {
         <div class="portal-card">
             <div class="portal-header">
                 <h1><i class="bi bi-shield-lock"></i> Laguna Partners Portal</h1>
-                <p class="mb-0 fs-5">Welcome! Please select your login portal</p>
+                <p class="mb-0 fs-5">Welcome back! Please select your login portal now</p>
             </div>
             <div class="portal-body">
                 <div class="row g-4">
-                    <!-- Admin & Buyer Login -->
-                    <div class="col-md-6">
+                    <!-- Internal User Login -->
+                    <div class="col-md-4">
                         <div class="login-option">
                             <div>
                                 <div class="login-option-icon admin-buyer-gradient">
-                                    <i class="bi bi-gear-fill"></i>
-                                    <i class="bi bi-cart-fill"></i>
+                                    <i class="bi bi-people-fill"></i>
                                 </div>
-                                <h3 class="admin-buyer-gradient mb-3">Admin & Buyer</h3>
+                                <h3 class="admin-buyer-gradient mb-3">Internal User</h3>
                                 <p class="text-muted mb-3">
-                                    Access administrative functions and buyer portal
+                                    Access for internal staff with various roles
                                 </p>
                                 <div class="mb-4">
                                     <span class="user-type-badge badge-admin">
@@ -177,37 +186,59 @@ if (Auth::check()) {
                                     <span class="user-type-badge badge-buyer">
                                         <i class="bi bi-cart-fill"></i> Buyer
                                     </span>
+                                    <span class="user-type-badge badge-buyer">
+                                        <i class="bi bi-file-earmark-text"></i> Accounting
+                                    </span>
                                 </div>
                             </div>
-                            <a href="<?php echo BASE_PATH; ?>/admin-buyer-login.php" class="btn btn-admin-buyer btn-lg w-100">
-                                <i class="bi bi-box-arrow-in-right"></i> Admin/Buyer Login
+                            <a href="<?php echo BASE_PATH; ?>/user-login.php" class="btn btn-admin-buyer btn-lg w-100">
+                                <i class="bi bi-box-arrow-in-right"></i> User Login
                             </a>
                         </div>
                     </div>
 
-                    <!-- Vendor & Dealer Login -->
-                    <div class="col-md-6">
+                    <!-- Vendor Login -->
+                    <div class="col-md-4">
                         <div class="login-option">
                             <div>
                                 <div class="login-option-icon vendor-dealer-gradient">
                                     <i class="bi bi-building"></i>
-                                    <i class="bi bi-shop"></i>
                                 </div>
-                                <h3 class="vendor-dealer-gradient mb-3">Vendor & Dealer</h3>
+                                <h3 class="vendor-dealer-gradient mb-3">Vendor</h3>
                                 <p class="text-muted mb-3">
-                                    Access vendor and dealer management portal
+                                    Access vendor portal
                                 </p>
                                 <div class="mb-4">
                                     <span class="user-type-badge badge-vendor">
                                         <i class="bi bi-building"></i> Vendor
                                     </span>
+                                </div>
+                            </div>
+                            <a href="<?php echo BASE_PATH; ?>/vendor-login.php" class="btn btn-vendor-dealer btn-lg w-100">
+                                <i class="bi bi-box-arrow-in-right"></i> Vendor Login
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Dealer Login -->
+                    <div class="col-md-4">
+                        <div class="login-option">
+                            <div>
+                                <div class="login-option-icon" style="background: linear-gradient(135deg, #d6663c 0%, #f5a962 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                    <i class="bi bi-shop"></i>
+                                </div>
+                                <h3 style="background: linear-gradient(135deg, #d6663c 0%, #f5a962 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 1rem;">Dealer</h3>
+                                <p class="text-muted mb-3">
+                                    Access dealer portal
+                                </p>
+                                <div class="mb-4">
                                     <span class="user-type-badge badge-dealer">
                                         <i class="bi bi-shop"></i> Dealer
                                     </span>
                                 </div>
                             </div>
-                            <a href="<?php echo BASE_PATH; ?>/vendor-dealer-login.php" class="btn btn-vendor-dealer btn-lg w-100">
-                                <i class="bi bi-box-arrow-in-right"></i> Vendor/Dealer Login
+                            <a href="<?php echo BASE_PATH; ?>/dealer-login.php" class="btn btn-lg w-100" style="background: linear-gradient(135deg, #d6663c 0%, #f5a962 100%); border: none; color: white;">
+                                <i class="bi bi-box-arrow-in-right"></i> Dealer Login
                             </a>
                         </div>
                     </div>

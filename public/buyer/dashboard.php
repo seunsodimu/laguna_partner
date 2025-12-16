@@ -27,7 +27,7 @@ if (!Auth::check()) {
 }
 
 $user = Auth::user();
-if ($user['type'] !== 'buyer') {
+if ($user['type'] !== 'user' || !in_array($user['role'], ['buyer', 'accounting', 'admin'])) {
     header('Location: ' . BASE_PATH . '/index.php');
     exit;
 }
@@ -35,8 +35,8 @@ if ($user['type'] !== 'buyer') {
 $db = Database::getInstance();
 
 // Get filter options
-$vendors = $db->fetchAll("SELECT DISTINCT id, company_name FROM accounts WHERE category = 'vendor' ORDER BY company_name");
-$buyers = $db->fetchAll("SELECT DISTINCT id, name FROM users WHERE type = 'buyer' ORDER BY name");
+$vendors = $db->fetchAll("SELECT DISTINCT id, company_name FROM accounts WHERE type = 'vendor' ORDER BY company_name");
+$buyers = $db->fetchAll("SELECT DISTINCT id, CONCAT(first_name, ' ', last_name) as name FROM users WHERE type = 'user' AND role IN ('buyer', 'accounting') ORDER BY name");
 
 // Get count of POs with vendor updates
 $updateCount = $db->fetchOne("SELECT COUNT(*) as count FROM purchase_orders WHERE has_vendor_updates = 1");
@@ -47,6 +47,23 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <ul class="nav nav-tabs mb-4" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" href="<?= BASE_PATH ?>/buyer/dashboard.php">
+                        <i class="bi bi-clipboard-check"></i> Purchase Orders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= BASE_PATH ?>/buyer/invoices.php">
+                        <i class="bi bi-receipt"></i> Invoices
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col-md-8">
             <h2>Purchase Orders</h2>
@@ -243,8 +260,8 @@ function displayPurchaseOrders(pos) {
         const hasUpdates = parseInt(po.has_vendor_updates) === 1;
         
         return `
-            <tr onclick="viewPO(${po.id})" style="cursor: pointer;">
-                <td><strong>${escapeHtml(po.tranid)}</strong></td>
+            <tr style="cursor: pointer;" onclick="window.location.href='${BASE_PATH}/buyer/purchase-order.php?id=${po.id}'">
+                <td><strong>${escapeHtml(po.tran_id)}</strong></td>
                 <td>${escapeHtml(po.company_name || 'N/A')}</td>
                 <td>$${parseFloat(po.total_amount || 0).toFixed(2)}</td>
                 <td><span class="badge bg-${status.class}">${status.text}</span></td>
@@ -294,14 +311,32 @@ function displayPODetails(po) {
     let html = `
         <div class="row mb-4">
             <div class="col-md-6">
-                <h4>PO# ${escapeHtml(po.tranid)}</h4>
+                <h4>PO# ${escapeHtml(po.tran_id)}</h4>
                 <p class="text-muted mb-1"><strong>Vendor:</strong> ${escapeHtml(po.company_name || 'N/A')}</p>
                 <p class="text-muted mb-1"><strong>Status:</strong> ${statusMap[po.status] || po.status}</p>
                 <p class="text-muted mb-1"><strong>Created:</strong> ${formatDate(po.created_date)}</p>
+               ${po.vessel_identifier ? `
+                <p><a href="https://www.myshiptracking.com/?mmsi=${encodeURIComponent(po.vessel_identifier || '')}" target="_blank" rel="noopener noreferrer">Track Vessel</a></p>
+                ` : ''}
             </div>
             <div class="col-md-6 text-end">
                 <h4>$${parseFloat(po.total_amount || 0).toFixed(2)}</h4>
                 ${hasUpdates ? '<div class="alert alert-warning mt-2"><i class="bi bi-exclamation-triangle"></i> Vendor has made updates</div>' : ''}
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label class="form-label"><strong>Vessel Name</strong></label>
+                <input type="text" class="form-control" id="editVesselName" value="${po.vessel_name || ''}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label"><strong>Vessel Identifier</strong></label>
+                <input type="text" class="form-control" id="editVesselIdentifier" value="${po.vessel_identifier || ''}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label"><strong>Expected Factory Date</strong></label>
+                <input type="date" class="form-control" id="editExpectedFactoryDate" value="${po.expected_factory_date || ''}">
             </div>
         </div>
         
@@ -354,8 +389,7 @@ function displayPODetails(po) {
                             <tr>
                                 <th>Item</th>
                                 <th>Original Qty</th>
-                                <th>Vendor Qty</th>
-                                <th>Rate</th>
+                                <th>Vendor/Shipped Qty</th>
                                 <th>Amount</th>
                             </tr>
                         </thead>
@@ -363,9 +397,8 @@ function displayPODetails(po) {
                             ${po.items.map(item => `
                                 <tr>
                                     <td>${escapeHtml(item.item_name)}</td>
-                                    <td>${item.original_quantity || 0}</td>
-                                    <td>${item.vendor_quantity || item.original_quantity || 0}</td>
-                                    <td>$${parseFloat(item.rate || 0).toFixed(2)}</td>
+                                    <td>${item.quantity || 0}</td>
+                                    <td>${item.vendor_quantity || item.quantity || 0}</td>
                                     <td>$${parseFloat(item.amount || 0).toFixed(2)}</td>
                                 </tr>
                             `).join('')}
@@ -403,9 +436,10 @@ function displayPODetails(po) {
                                     <div class="flex-grow-1">
                                         <i class="bi bi-file-earmark"></i>
                                         <strong>${escapeHtml(doc.original_filename)}</strong>
+                                        ${doc.document_type ? `<span class="badge bg-info ms-2">${escapeHtml(doc.document_type)}</span>` : ''}
                                         <small class="text-muted ms-2">(${formatFileSize(doc.file_size)})</small>
                                         ${doc.comment ? `<p class="mb-0 mt-1 text-muted small">${escapeHtml(doc.comment)}</p>` : ''}
-                                        <small class="text-muted d-block">${formatDateTime(doc.uploaded_at)}</small>
+                                        <small class="text-muted d-block">${formatDateTime(doc.created_at)}</small>
                                     </div>
                                     <div>
                                         <a href="${BASE_PATH}/api/download.php?id=${doc.id}" class="btn btn-sm btn-outline-primary" title="Download">
@@ -427,6 +461,9 @@ function displayPODetails(po) {
 function savePOChanges(poId) {
     const data = {
         id: poId,
+        vessel_name: document.getElementById('editVesselName').value,
+        vessel_identifier: document.getElementById('editVesselIdentifier').value,
+        expected_factory_date: document.getElementById('editExpectedFactoryDate').value,
         port_date: document.getElementById('editPortDate').value,
         estimated_delivery_date: document.getElementById('editEstDelivery').value,
         ship_date: document.getElementById('editShipDate').value,

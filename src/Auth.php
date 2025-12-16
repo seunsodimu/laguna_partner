@@ -58,32 +58,24 @@ class Auth {
 
     /**
      * Validate user has access to portal
+     * Note: userType can be 'user' (internal staff), 'vendor', or 'dealer'
      */
     private function validateUserAccess($email, $userType) {
-        if ($userType === 'admin' || $userType === 'buyer') {
-            // Check if user exists in users table
+        if ($userType === 'user') {
+            // Check if internal user exists in users table with active status
             $user = $this->db->fetchOne(
-                "SELECT * FROM users WHERE email = ? AND type = ? AND is_active = 1",
-                [$email, $userType]
+                "SELECT * FROM users WHERE email = ? AND type = 'user' AND is_active =1",
+                [$email]
             );
             return $user !== false;
-        } elseif ($userType === 'vendor') {
+        } elseif ($userType === 'vendor' || $userType === 'dealer') {
             // Check if email exists in accounts or user_accounts
             $sql = "SELECT a.* FROM accounts a 
                     LEFT JOIN user_accounts ua ON a.id = ua.account_id
                     LEFT JOIN users u ON ua.user_id = u.id
-                    WHERE a.type = 'vendor' AND a.is_active = 1 
+                    WHERE a.type = ? AND a.is_active = 1
                     AND (a.email = ? OR u.email = ?)";
-            $account = $this->db->fetchOne($sql, [$email, $email]);
-            return $account !== false;
-        } elseif ($userType === 'dealer') {
-            // Check if email exists in dealer accounts or user_accounts
-            $sql = "SELECT a.* FROM accounts a 
-                    LEFT JOIN user_accounts ua ON a.id = ua.account_id
-                    LEFT JOIN users u ON ua.user_id = u.id
-                    WHERE a.type = 'dealer' AND a.is_active = 1 
-                    AND (a.email = ? OR u.email = ?)";
-            $account = $this->db->fetchOne($sql, [$email, $email]);
+            $account = $this->db->fetchOne($sql, [$userType, $email, $email]);
             return $account !== false;
         }
 
@@ -112,8 +104,8 @@ class Auth {
         // Mark OTP as used
         $this->db->update('otp_codes', 
             ['is_used' => 1],
-            'id = :otp_id',
-            [':otp_id' => $otpRecord['id']]
+            'id = ?',
+            [$otpRecord['id']]
         );
 
         // Get or create user
@@ -129,15 +121,20 @@ class Auth {
         // Update last login
         $this->db->update('users',
             ['last_login' => date('Y-m-d H:i:s')],
-            'id = :user_id',
-            [':user_id' => $user['id']]
+            'id = ?',
+            [$user['id']]
         );
 
         // Create session
         $this->createSession($user);
+        
+        // For dealers and vendors, set the active account
+        if ($userType === 'dealer' || $userType === 'vendor') {
+            $this->setActiveAccount($user['id'], $email, $userType);
+        }
 
         // Log activity
-        $this->logActivity($user['id'], 'login', null, null, [
+        $this->logActivity($user['id'], 'login', null, [
             'user_type' => $userType,
             'email' => $email
         ]);
@@ -184,9 +181,54 @@ class Auth {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['user_type'] = $user['type'];
+        $_SESSION['role'] = $user['role'] ?? null;
         $_SESSION['user_name'] = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
         $_SESSION['logged_in'] = true;
         $_SESSION['login_time'] = time();
+    }
+    
+    /**
+     * Set active account for dealers/vendors
+     */
+    private function setActiveAccount($userId, $email, $userType) {
+        // First, try to find account directly by email
+        $sql = "SELECT id FROM accounts 
+                WHERE type = ? AND email = ? AND is_active = 1
+                LIMIT 1";
+        
+        $account = $this->db->fetchOne($sql, [$userType, $email]);
+        
+        // If not found, try through user_accounts relationship
+        if (!$account) {
+            $sql = "SELECT a.id FROM accounts a 
+                    INNER JOIN user_accounts ua ON a.id = ua.account_id
+                    WHERE ua.user_id = ? AND a.type = ? AND a.is_active = 1
+                    ORDER BY ua.is_primary DESC
+                    LIMIT 1";
+            
+            $account = $this->db->fetchOne($sql, [$userId, $userType]);
+        }
+        
+        if ($account) {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            $_SESSION['active_account_id'] = $account['id'];
+            
+            // Create user_accounts relationship if it doesn't exist
+            $existingRelation = $this->db->fetchOne(
+                "SELECT id FROM user_accounts WHERE user_id = ? AND account_id = ?",
+                [$userId, $account['id']]
+            );
+            
+            if (!$existingRelation) {
+                $this->db->insert('user_accounts', [
+                    'user_id' => $userId,
+                    'account_id' => $account['id'],
+                    'is_primary' => 1
+                ]);
+            }
+        }
     }
 
     /**
@@ -215,7 +257,9 @@ class Auth {
             'id' => $_SESSION['user_id'] ?? null,
             'email' => $_SESSION['user_email'] ?? null,
             'type' => $_SESSION['user_type'] ?? null,
-            'name' => $_SESSION['user_name'] ?? null
+            'role' => $_SESSION['role'] ?? null,
+            'name' => $_SESSION['user_name'] ?? null,
+            'account_id' => $_SESSION['active_account_id'] ?? null
         ];
     }
 

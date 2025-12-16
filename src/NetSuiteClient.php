@@ -248,7 +248,7 @@ class NetSuiteClient {
      */
     public function getPurchaseOrders($statuses = ['B', 'E', 'F', 'H'], $vendorId = null) {
         $statusList = "'" . implode("','", $statuses) . "'";
-        $sql = "SELECT * FROM transaction WHERE type='PurchOrd' AND status IN ($statusList)";
+        $sql = "SELECT * FROM transaction WHERE type='PurchOrd' AND status IN ($statusList) ORDER BY createddate DESC";
         
         if ($vendorId) {
             $sql .= " AND entity=$vendorId";

@@ -15,7 +15,7 @@ header('Content-Type: application/json');
 
 // Start session and check authentication
 session_start();
-if (!Auth::isLoggedIn()) {
+if (!Auth::check()) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
@@ -25,7 +25,7 @@ $db = Database::getInstance();
 $method = $_SERVER['REQUEST_METHOD'];
 $userType = $_SESSION['user_type'] ?? '';
 $userId = $_SESSION['user_id'] ?? 0;
-$accountId = $_SESSION['current_account_id'] ?? null;
+$accountId = $_SESSION['active_account_id'] ?? null;
 
 // Only dealers can access this endpoint
 if ($userType !== 'dealer') {
@@ -60,12 +60,12 @@ function handleGet($db, $userId, $accountId) {
     if ($action === 'notifications') {
         // Get dealer's notification subscriptions
         $notifications = $db->fetchAll(
-            "SELECT n.*, i.item_name, i.sku, i.quantity_available
+            "SELECT n.*, i.name as item_name, i.item_id as sku, i.quantity as quantity_available
              FROM item_notifications n
              INNER JOIN items i ON n.item_id = i.id
-             WHERE n.dealer_id = ? AND n.is_active = 1
+             WHERE n.user_id = ? AND n.is_active = 1
              ORDER BY n.created_at DESC",
-            [$accountId]
+            [$userId]
         );
         
         echo json_encode(['success' => true, 'data' => $notifications]);
@@ -82,7 +82,7 @@ function handleGet($db, $userId, $accountId) {
     $params = [];
     
     if (!empty($search)) {
-        $filters[] = "(i.item_name LIKE ? OR i.sku LIKE ?)";
+        $filters[] = "(i.name LIKE ? OR i.item_id LIKE ?)";
         $searchTerm = '%' . $search . '%';
         $params[] = $searchTerm;
         $params[] = $searchTerm;
@@ -96,19 +96,20 @@ function handleGet($db, $userId, $accountId) {
     $total = $totalResult['total'];
     
     // Get items with notification status
-    $sql = "SELECT i.*,
+    $sql = "SELECT i.id, i.name as item_name, i.item_id as sku, i.quantity as quantity_available, 
+                   i.description, i.price, i.category, i.is_active,
                    (SELECT COUNT(*) FROM item_notifications 
-                    WHERE item_id = i.id AND dealer_id = ? AND is_active = 1) as has_notification,
+                    WHERE item_id = i.id AND user_id = ? AND is_active = 1) as has_notification,
                    (SELECT notification_type FROM item_notifications 
-                    WHERE item_id = i.id AND dealer_id = ? AND is_active = 1 LIMIT 1) as notification_type,
-                   (SELECT threshold_quantity FROM item_notifications 
-                    WHERE item_id = i.id AND dealer_id = ? AND is_active = 1 LIMIT 1) as threshold_quantity
+                    WHERE item_id = i.id AND user_id = ? AND is_active = 1 LIMIT 1) as notification_type,
+                   (SELECT threshold FROM item_notifications 
+                    WHERE item_id = i.id AND user_id = ? AND is_active = 1 LIMIT 1) as threshold_quantity
             FROM items i
             {$whereClause}
-            ORDER BY i.item_name
+            ORDER BY i.name
             LIMIT ? OFFSET ?";
     
-    $queryParams = array_merge([$accountId, $accountId, $accountId], $params, [$perPage, $offset]);
+    $queryParams = array_merge([$userId, $userId, $userId], $params, [$perPage, $offset]);
     $items = $db->fetchAll($sql, $queryParams);
     
     echo json_encode([
@@ -163,15 +164,15 @@ function handlePost($db, $userId, $accountId) {
         
         // Check if notification already exists
         $existing = $db->fetchOne(
-            "SELECT * FROM item_notifications WHERE item_id = ? AND dealer_id = ? AND is_active = 1",
-            [$itemId, $accountId]
+            "SELECT * FROM item_notifications WHERE item_id = ? AND user_id = ? AND is_active = 1",
+            [$itemId, $userId]
         );
         
         if ($existing) {
             // Update existing notification
             $db->query(
                 "UPDATE item_notifications 
-                 SET notification_type = ?, threshold_quantity = ?, updated_at = NOW()
+                 SET notification_type = ?, threshold = ?
                  WHERE id = ?",
                 [$notificationType, $thresholdQuantity, $existing['id']]
             );
@@ -181,9 +182,9 @@ function handlePost($db, $userId, $accountId) {
         } else {
             // Create new notification
             $db->query(
-                "INSERT INTO item_notifications (item_id, dealer_id, notification_type, threshold_quantity, is_active, created_at)
+                "INSERT INTO item_notifications (item_id, user_id, notification_type, threshold, is_active, created_at)
                  VALUES (?, ?, ?, ?, 1, NOW())",
-                [$itemId, $accountId, $notificationType, $thresholdQuantity]
+                [$itemId, $userId, $notificationType, $thresholdQuantity]
             );
             
             $notificationId = $db->lastInsertId();
@@ -192,7 +193,7 @@ function handlePost($db, $userId, $accountId) {
         
         // Get the notification with item info
         $notification = $db->fetchOne(
-            "SELECT n.*, i.item_name, i.sku, i.quantity_available
+            "SELECT n.*, i.name as item_name, i.item_id as sku, i.quantity as quantity_available
              FROM item_notifications n
              INNER JOIN items i ON n.item_id = i.id
              WHERE n.id = ?",
@@ -200,9 +201,10 @@ function handlePost($db, $userId, $accountId) {
         );
         
         // Log activity
-        Auth::logActivity($userId, 'subscribe_item_notification', "Subscribed to {$notificationType} notification for item {$item['sku']}", [
+        Auth::logActivity($userId, 'subscribe_item_notification', 'item_notification', [
             'item_id' => $itemId,
-            'notification_type' => $notificationType
+            'notification_type' => $notificationType,
+            'item_sku' => $item['item_id']
         ]);
         
         echo json_encode(['success' => true, 'message' => $message, 'data' => $notification]);
@@ -224,8 +226,8 @@ function handleDelete($db, $userId, $accountId) {
     
     // Verify notification belongs to this dealer
     $notification = $db->fetchOne(
-        "SELECT * FROM item_notifications WHERE id = ? AND dealer_id = ?",
-        [$notificationId, $accountId]
+        "SELECT * FROM item_notifications WHERE id = ? AND user_id = ?",
+        [$notificationId, $userId]
     );
     
     if (!$notification) {
@@ -241,7 +243,7 @@ function handleDelete($db, $userId, $accountId) {
     );
     
     // Log activity
-    Auth::logActivity($userId, 'unsubscribe_item_notification', "Unsubscribed from item notification", [
+    Auth::logActivity($userId, 'unsubscribe_item_notification', 'item_notification', [
         'notification_id' => $notificationId
     ]);
     

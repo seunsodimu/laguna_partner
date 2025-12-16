@@ -5,6 +5,8 @@
  * This file contains the main configuration settings for the Laguna Partners Portal.
  */
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Load environment variables if .env file exists
 if (file_exists(__DIR__ . '/../.env')) {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');

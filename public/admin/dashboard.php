@@ -27,7 +27,7 @@ if (!Auth::check()) {
 }
 
 $user = Auth::user();
-if ($user['type'] !== 'admin') {
+if ($user['type'] !== 'user' || $user['role'] !== 'admin') {
     header('Location: ' . BASE_PATH . '/index.php');
     exit;
 }
@@ -280,7 +280,19 @@ function runSync(type) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: type })
     })
-    .then(response => response.json())
+    .then(response => {
+        // Check if response is ok (status 200-299)
+        if (!response.ok) {
+            // Try to parse JSON error response
+            return response.json().then(data => {
+                throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+            }).catch(jsonError => {
+                // If JSON parsing fails, throw HTTP error
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             statusDiv.innerHTML = `<div class="alert alert-success mb-0 mt-2">
@@ -291,21 +303,51 @@ function runSync(type) {
             // Reload page after 2 seconds to update stats
             setTimeout(() => location.reload(), 2000);
         } else {
-            statusDiv.innerHTML = `<div class="alert alert-danger mb-0 mt-2">
-                <i class="bi bi-x-circle"></i> Error: ${data.message}
-            </div>`;
+            // Show detailed error information
+            let errorHtml = `<div class="alert alert-danger mb-0 mt-2">
+                <i class="bi bi-x-circle"></i> <strong>Error:</strong> ${escapeHtml(data.message)}`;
+            
+            // Add file and line info if available
+            if (data.file) {
+                errorHtml += `<br><small class="text-muted">File: ${escapeHtml(data.file)}</small>`;
+            }
+            if (data.line) {
+                errorHtml += `<br><small class="text-muted">Line: ${data.line}</small>`;
+            }
+            
+            // Add trace in a collapsible section if available
+            if (data.trace) {
+                errorHtml += `<br><br>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#trace-${type}">
+                        Show Stack Trace
+                    </button>
+                    <div class="collapse mt-2" id="trace-${type}">
+                        <pre class="bg-light p-2 small" style="max-height: 200px; overflow-y: auto;">${escapeHtml(data.trace)}</pre>
+                    </div>`;
+            }
+            
+            errorHtml += '</div>';
+            statusDiv.innerHTML = errorHtml;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         statusDiv.innerHTML = `<div class="alert alert-danger mb-0 mt-2">
-            <i class="bi bi-x-circle"></i> Failed to run sync
+            <i class="bi bi-x-circle"></i> <strong>Failed to run sync:</strong><br>
+            ${escapeHtml(error.message || error.toString())}
         </div>`;
     })
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sync ' + type.charAt(0).toUpperCase() + type.slice(1);
     });
+}
+
+// Helper function to escape HTML and prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 </script>
 

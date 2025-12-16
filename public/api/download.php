@@ -9,8 +9,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../src/Database.php';
 require_once __DIR__ . '/../../src/Auth.php';
 
-use App\Database;
-use App\Auth;
+use LagunaPartners\Database;
+use LagunaPartners\Auth;
 
 // Start session
 session_start();

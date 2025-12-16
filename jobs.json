@@ -1,0 +1,67 @@
+curl --location 'https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/vendorBill/' \
+--header 'Content-Type: application/json' \
+--header 'Prefer: transient' \
+--header 'Authorization: OAuth realm="11134099_SB1",oauth_consumer_key="3f33b52a89cf7f188ea268d3ac45bc9d541cd5bffa978f909b6f41caaf0ae7c8",oauth_token="abdf71349257fb118169bd9a790450e44c9cc9591cc36ecd6f33a53cb9602bf3",oauth_signature_method="HMAC-SHA256",oauth_timestamp="1765864581",oauth_nonce="1JpRievMVUs",oauth_version="1.0",oauth_signature="%2Blu1Kuodk2eWmQ9jUf%2FJMiEEY%2BS%2FV3ydLA%2BSCAbEx4g%3D"' \
+--data '{
+    "approvalStatus": {
+        "id": "2"
+    },
+    "createdDate": "2025-10-14T20:13:00Z",  
+    "postingperiod":"",
+    "department": {
+        "id": "3"
+    },
+    "dueDate": "2025-09-08",
+    "entity": {
+        "id": "481425"
+    },
+    "item": {
+        "items": [
+            {
+                "amount": 160.09,
+                "department": {
+                    "id": "3"
+                },
+                "inventoryDetail": {
+                    "inventoryAssignment": {
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "item": {
+                    "id": "12846"
+                },
+                "line": 1,
+                "location": {
+                    "id": "1"
+                },
+                "orderDoc": {
+                    "id": "144369"
+                },
+                "orderLine": 1,
+                "quantity": 1.0,
+                "rate": 160.09
+            }
+        ],
+        "totalResults": 1
+    },
+    "lastModifiedDate": "2025-12-14T20:29:00Z",
+    "location": {
+        "id": "1"
+    },
+    "memo": "PO44316",
+    "postingPeriod": {
+        "id": "41"
+    },
+    "prevDate": "2025-12-10",
+    "subsidiary": {
+        "id": "1"
+    },
+    "terms": {
+        "id": "3"
+    },
+    "total": 160.09,
+    "tranDate": "2025-12-10",
+    "tranId": "test1234566df21",
+    "userTotal": 160.09
+}'

@@ -26,7 +26,7 @@ if (!Auth::check()) {
 }
 
 $user = Auth::user();
-if ($user['type'] !== 'admin') {
+if ($user['type'] !== 'user' || $user['role'] !== 'admin') {
     header('Location: ' . BASE_PATH . '/index.php');
     exit;
 }
@@ -139,11 +139,11 @@ include __DIR__ . '/../includes/header.php';
                             <td><?= htmlspecialchars(trim($u['first_name'] . ' ' . $u['last_name'])) ?: '-' ?></td>
                             <td>
                                 <span class="badge bg-<?= 
-                                    $u['type'] === 'admin' ? 'danger' : 
-                                    ($u['type'] === 'buyer' ? 'primary' : 
+                                    ($u['type'] === 'user' && $u['role'] === 'admin') ? 'danger' : 
+                                    ($u['type'] === 'user' ? 'primary' : 
                                     ($u['type'] === 'vendor' ? 'success' : 'info')) 
                                 ?>">
-                                    <?= ucfirst($u['type']) ?>
+                                    <?= $u['type'] === 'user' ? ucfirst($u['role']) : ucfirst($u['type']) ?>
                                 </span>
                             </td>
                             <td>
@@ -334,11 +334,19 @@ function editUser(userId) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label">User Type</label>
-                        <select class="form-select" name="type" required>
-                            <option value="admin" ${user.type === 'admin' ? 'selected' : ''}>Admin</option>
-                            <option value="buyer" ${user.type === 'buyer' ? 'selected' : ''}>Buyer</option>
+                        <select class="form-select" name="type" required onchange="updateRoleOptions(this)">
+                            <option value="user" ${user.type === 'user' ? 'selected' : ''}>Internal User</option>
                             <option value="vendor" ${user.type === 'vendor' ? 'selected' : ''}>Vendor</option>
                             <option value="dealer" ${user.type === 'dealer' ? 'selected' : ''}>Dealer</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="roleDiv" style="${user.type === 'user' ? '' : 'display:none;'}">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role">
+                            <option value="">-- Select Role --</option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            <option value="buyer" ${user.role === 'buyer' ? 'selected' : ''}>Buyer</option>
+                            <option value="accounting" ${user.role === 'accounting' ? 'selected' : ''}>Accounting</option>
                         </select>
                     </div>
                 </form>
@@ -375,6 +383,15 @@ function saveUserChanges() {
         console.error('Error:', error);
         showToast('Error updating user', 'error');
     });
+}
+
+function updateRoleOptions(typeSelect) {
+    const roleDiv = document.getElementById('roleDiv');
+    if (typeSelect.value === 'user') {
+        roleDiv.style.display = '';
+    } else {
+        roleDiv.style.display = 'none';
+    }
 }
 
 function toggleUserStatus(userId, newStatus) {

@@ -15,7 +15,7 @@ header('Content-Type: application/json');
 
 // Start session and check authentication
 session_start();
-if (!Auth::isLoggedIn()) {
+if (!Auth::check()) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
@@ -34,10 +34,17 @@ try {
     
     $poId = $_POST['po_id'] ?? null;
     $comment = $_POST['comment'] ?? '';
+    $documentType = $_POST['document_type'] ?? null;
     
     if (!$poId) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'PO ID required']);
+        exit;
+    }
+    
+    if (!$documentType) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Document type required']);
         exit;
     }
     
@@ -52,7 +59,7 @@ try {
     
     // Check vendor access
     if ($userType === 'vendor') {
-        $accountId = $_SESSION['current_account_id'] ?? null;
+        $accountId = $_SESSION['active_account_id'] ?? null;
         if ($po['vendor_id'] != $accountId) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Access denied']);
@@ -121,16 +128,16 @@ try {
     
     // Save to database
     $db->query(
-        "INSERT INTO po_documents (po_id, filename, original_filename, file_path, file_size, mime_type, uploaded_by, comment, uploaded_at)
+        "INSERT INTO po_documents (po_id, user_id, file_name, file_path, file_size, file_type, document_type, comment, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
         [
             $poId,
-            $filename,
+            $userId,
             $file['name'],
             $filePath,
             $file['size'],
             $mimeType,
-            $userId,
+            $documentType,
             $comment
         ]
     );
@@ -139,9 +146,9 @@ try {
     
     // Get the document with user info
     $document = $db->fetchOne(
-        "SELECT d.*, u.name as uploaded_by_name
+        "SELECT d.*, CONCAT(u.first_name, ' ', u.last_name) as uploaded_by_name
          FROM po_documents d
-         LEFT JOIN users u ON d.uploaded_by = u.id
+         LEFT JOIN users u ON d.user_id = u.id
          WHERE d.id = ?",
         [$docId]
     );

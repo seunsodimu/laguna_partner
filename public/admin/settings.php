@@ -25,7 +25,7 @@ if (!Auth::check()) {
 }
 
 $user = Auth::user();
-if ($user['type'] !== 'admin') {
+if ($user['type'] !== 'user' || $user['role'] !== 'admin') {
     header('Location: ' . BASE_PATH . '/index.php');
     exit;
 }
