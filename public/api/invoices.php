@@ -566,7 +566,6 @@ function createInvoice($db, $user) {
             'status' => 'draft'
         ]);
 
-        syncInvoiceToNetSuite($db, $invoiceId);
         notifyInvoiceCreated($db, $invoiceId);
     } catch (Exception $e) {
         error_log("Post-creation error for invoice $invoiceId: " . $e->getMessage());
@@ -1645,8 +1644,10 @@ function calculateEstimatedPaymentDate($due_date, $payment_terms) {
         return null;
     }
 
-    // Parse payment terms and add to due date
-    // e.g., "Net 30" -> add 30 days to invoice date
+    if (!$payment_terms) {
+        return $due_date;
+    }
+
     if (preg_match('/Net\s+(\d+)/i', $payment_terms, $matches)) {
         $days = intval($matches[1]);
         $date = new DateTime($due_date);
