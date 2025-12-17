@@ -1,9 +1,4 @@
 <?php
-/**
- * Invoice Details Page
- * Dedicated page for reviewing individual invoices
- */
-
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../src/Auth.php';
 require_once __DIR__ . '/../../src/Database.php';
@@ -23,44 +18,8 @@ if (!Auth::check()) {
     exit;
 }
 
-function getNetSuiteLink($invoice) {
-    $env = strtoupper($_ENV['NETSUITE_ENVIRONMENT'] ?? 'SANDBOX');
-    $account_key = 'NETSUITE_' . $env . '_ACCOUNT_ID';
-    $account_id = $_ENV[$account_key] ?? '11134099_SB1';
-    
-    if ($invoice['netsuite_bill_id']) {
-        $account_id = str_replace('_', '-', $account_id);
-        return 'https://' . $account_id . '.app.netsuite.com/app/accounting/transactions/vendbill.nl?id=' . htmlspecialchars($invoice['netsuite_bill_id']);
-    }
-    return '#';
-}
-
-function getPostingPeriodOptions() {
-    $options = [];
-    $baseId = 46;
-    $baseDate = new DateTime('2025-12-01');
-    $now = new DateTime();
-    $endDate = clone $now;
-    $endDate->modify('+1 year');
-    
-    $current = clone $baseDate;
-    $currentId = $baseId;
-    
-    while ($current <= $endDate) {
-        $label = $current->format('F Y');
-        $options[] = [
-            'id' => $currentId,
-            'label' => $label
-        ];
-        $current->modify('+1 month');
-        $currentId++;
-    }
-    
-    return $options;
-}
-
 $user = Auth::user();
-if ($user['type'] !== 'user' || !in_array($user['role'], ['buyer', 'accounting', 'admin'])) {
+if ($user['type'] !== 'vendor') {
     header('Location: ' . BASE_PATH . '/index.php');
     exit;
 }
@@ -69,13 +28,13 @@ $db = Database::getInstance();
 $invoice_id = intval($_GET['id'] ?? 0);
 
 if (!$invoice_id) {
-    header('Location: ' . BASE_PATH . '/buyer/invoices.php');
+    header('Location: ' . BASE_PATH . '/vendor/invoices.php');
     exit;
 }
 
 $invoice = $db->fetchOne("SELECT * FROM invoices WHERE id = ?", [$invoice_id]);
-if (!$invoice) {
-    header('Location: ' . BASE_PATH . '/buyer/invoices.php');
+if (!$invoice || $invoice['vendor_id'] != $user['account_id']) {
+    header('Location: ' . BASE_PATH . '/vendor/invoices.php');
     exit;
 }
 
@@ -124,6 +83,9 @@ include __DIR__ . '/../includes/header.php';
         padding: 30px;
         border-radius: 8px 8px 0 0;
         margin-bottom: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     
     .invoice-header h1 {
@@ -185,8 +147,43 @@ include __DIR__ . '/../includes/header.php';
         margin-bottom: 0;
     }
     
-    .line-items-table {
-        margin: 20px;
+    .po-group {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        margin: 15px 20px;
+        overflow: hidden;
+    }
+    
+    .po-group-header {
+        background: #f5f5f5;
+        padding: 12px 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .po-group-header:hover {
+        background: #efefef;
+    }
+    
+    .po-chevron {
+        display: inline-block;
+        transition: transform 0.3s ease;
+    }
+    
+    .po-chevron.collapsed {
+        transform: rotate(-90deg);
+    }
+    
+    .po-group-items {
+        padding: 0;
+    }
+    
+    .po-group-items table {
+        margin: 0;
+        width: 100%;
     }
     
     .attachments-list,
@@ -234,8 +231,10 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="invoice-container">
     <div class="invoice-header">
-        <h1>Invoice #<?php echo htmlspecialchars($invoice['invoice_number']); ?></h1>
-        <p><?php echo htmlspecialchars($invoice['vendor_name'] ?? 'N/A'); ?></p>
+        <div>
+            <h1>Invoice #<?php echo htmlspecialchars($invoice['invoice_number']); ?></h1>
+            <p><?php echo htmlspecialchars($invoice['vendor_name'] ?? 'N/A'); ?></p>
+        </div>
     </div>
     
     <div class="invoice-details">
@@ -308,97 +307,40 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <?php endif; ?>
         
-        <!-- Department, Location, and Posting Period Fields -->
-        <?php if (in_array($invoice['status'], ['submitted', 'under_review', 'approved'])): ?>
-        <div class="section-title">
-            <i class="bi bi-gear me-2"></i> NetSuite Sync Details
-        </div>
-        <div class="detail-row">
-            <div class="detail-item">
-                <label class="detail-label" for="department_id">
-                    Department <span style="color: red;">*</span>
-                </label>
-                <select id="department_id" class="form-control" required>
-                    <option value="">-- Select Department --</option>
-                    <option value="1" <?php echo $invoice['department_id'] == 1 ? 'selected' : ''; ?>>Sales: Direct</option>
-                    <option value="2" <?php echo $invoice['department_id'] == 2 ? 'selected' : ''; ?>>Sales: Metal</option>
-                    <option value="3" <?php echo $invoice['department_id'] == 3 ? 'selected' : ''; ?>>Sales: Wholesale</option>
-                    <option value="4" <?php echo $invoice['department_id'] == 4 ? 'selected' : ''; ?>>Corporate</option>
-                    <option value="5" <?php echo $invoice['department_id'] == 5 ? 'selected' : ''; ?>>Sale</option>
-                </select>
-            </div>
-            <div class="detail-item">
-                <label class="detail-label" for="location_id">
-                    Location <span style="color: red;">*</span>
-                </label>
-                <select id="location_id" class="form-control" required>
-                    <option value="">-- Select Location --</option>
-                    <option value="1" <?php echo $invoice['location_id'] == 1 ? 'selected' : ''; ?>>Laguna Texas</option>
-                    <option value="2" <?php echo $invoice['location_id'] == 2 ? 'selected' : ''; ?>>Laguna South Carolina</option>
-                    <option value="3" <?php echo $invoice['location_id'] == 3 ? 'selected' : ''; ?>>Laguna Michigan</option>
-                    <option value="4" <?php echo $invoice['location_id'] == 4 ? 'selected' : ''; ?>>Laguna California</option>
-                    <option value="5" <?php echo $invoice['location_id'] == 5 ? 'selected' : ''; ?>>Laguna International</option>
-                    <option value="6" <?php echo $invoice['location_id'] == 6 ? 'selected' : ''; ?>>Laguna Demo/Returns/Damages</option>
-                    <option value="7" <?php echo $invoice['location_id'] == 7 ? 'selected' : ''; ?>>Laguna Texas Outlet</option>
-                    <option value="8" <?php echo $invoice['location_id'] == 8 ? 'selected' : ''; ?>>Laguna Texas Showroom</option>
-                    <option value="9" <?php echo $invoice['location_id'] == 9 ? 'selected' : ''; ?>>Laguna South Carolina Showroom</option>
-                </select>
-            </div>
-            <div class="detail-item">
-                <label class="detail-label" for="posting_period_id">
-                    Posting Period <span style="color: red;">*</span>
-                </label>
-                <select id="posting_period_id" class="form-control" required>
-                    <option value="">-- Select Posting Period --</option>
-                    <?php 
-                    $periods = getPostingPeriodOptions();
-                    foreach ($periods as $period): 
-                    ?>
-                    <option value="<?php echo $period['id']; ?>" <?php echo $invoice['postingperiod'] == $period['id'] ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($period['label']); ?>
-                    </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-        <?php endif; ?>
-        
         <!-- Line Items Grouped by PO -->
         <?php if (!empty($grouped_items)): ?>
         <div class="section-title">
             <i class="bi bi-list-check me-2"></i> Line Items
         </div>
-        <div style="margin: 20px;">
+        <div>
             <?php foreach ($grouped_items as $group): ?>
-            <div style="border: 1px solid #e0e0e0; border-radius: 6px; margin: 15px 0; overflow: hidden;">
-                <div style="background: #f5f5f5; padding: 12px 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="togglePOGroup(this)">
+            <div class="po-group">
+                <div class="po-group-header" onclick="togglePOGroup(this)">
                     <span><?php echo htmlspecialchars($group['po_number']); ?> (<?php echo count($group['items']); ?> item<?php echo count($group['items']) !== 1 ? 's' : ''; ?>)</span>
-                    <span style="display: inline-block; transition: transform 0.3s ease;">▶</span>
+                    <span class="po-chevron">▶</span>
                 </div>
-                <div style="display: block;">
-                    <div style="padding: 0;">
-                        <div style="overflow-x: auto;">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Description</th>
-                                        <th class="text-end">Quantity</th>
-                                        <th class="text-end">Unit Price</th>
-                                        <th class="text-end">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($group['items'] as $item): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($item['description'] ?? '-'); ?></td>
-                                        <td class="text-end"><?php echo number_format($item['quantity'] ?? 0, 2); ?></td>
-                                        <td class="text-end">$<?php echo number_format($item['unit_price'] ?? 0, 2); ?></td>
-                                        <td class="text-end"><strong>$<?php echo number_format($item['amount'] ?? 0, 2); ?></strong></td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="po-group-items">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-end">Quantity</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($group['items'] as $item): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($item['description'] ?? '-'); ?></td>
+                                    <td class="text-end"><?php echo number_format($item['quantity'] ?? 0, 2); ?></td>
+                                    <td class="text-end">$<?php echo number_format($item['unit_price'] ?? 0, 2); ?></td>
+                                    <td class="text-end"><strong>$<?php echo number_format($item['amount'] ?? 0, 2); ?></strong></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -460,29 +402,17 @@ include __DIR__ . '/../includes/header.php';
         
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <a href="<?php echo BASE_PATH; ?>/buyer/invoices.php" class="btn btn-outline-secondary">
+            <a href="<?php echo BASE_PATH; ?>/vendor/invoices.php" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-2"></i> Back to Invoices
             </a>
             
-            <?php if (in_array($invoice['status'], ['submitted', 'under_review'])): ?>
-            <button class="btn btn-success" onclick="approveInvoice(<?php echo $invoice['id']; ?>)">
-                <i class="bi bi-check-circle me-2"></i> Approve & Sync Invoice
-            </button>
-            <button class="btn btn-warning" onclick="requestCorrection(<?php echo $invoice['id']; ?>)">
-                <i class="bi bi-exclamation-circle me-2"></i> Reject Invoice
-            </button>
-            <?php endif; ?>
-            
-            <?php if (in_array($invoice['status'], ['approved']) && !$invoice['netsuite_bill_id']): ?>
-            <button class="btn btn-primary" onclick="syncToNetSuite(<?php echo $invoice['id']; ?>)">
-                <i class="bi bi-cloud-arrow-up me-2"></i> Sync to NetSuite
-            </button>
-            <?php endif; ?>
-            
-            <?php if ($invoice['netsuite_bill_id']): ?>
-            <a href="<?php echo getNetSuiteLink($invoice); ?>" target="_blank" class="btn btn-info">
-                <i class="bi bi-box-arrow-up-right me-2"></i> View in NetSuite
+            <?php if ($invoice['status'] === 'draft'): ?>
+            <a href="<?php echo BASE_PATH; ?>/vendor/invoice-edit.php?id=<?php echo $invoice['id']; ?>" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i> Edit Invoice
             </a>
+            <button class="btn btn-success" onclick="submitInvoice(<?php echo $invoice['id']; ?>)">
+                <i class="bi bi-check-circle me-2"></i> Submit for Review
+            </button>
             <?php endif; ?>
         </div>
     </div>
@@ -496,14 +426,14 @@ const INVOICE_ID = <?php echo $invoice['id']; ?>;
 
 function togglePOGroup(element) {
     const itemsDiv = element.nextElementSibling;
-    const chevron = element.querySelector('span:last-child');
+    const chevron = element.querySelector('.po-chevron');
     
     if (itemsDiv.style.display === 'none') {
         itemsDiv.style.display = 'block';
-        chevron.style.transform = 'rotate(0deg)';
+        chevron.classList.remove('collapsed');
     } else {
         itemsDiv.style.display = 'none';
-        chevron.style.transform = 'rotate(-90deg)';
+        chevron.classList.add('collapsed');
     }
 }
 
@@ -544,116 +474,28 @@ function showToast(message, type = 'info') {
     toast.show();
 }
 
-function approveInvoice(invoiceId) {
-    const departmentId = document.getElementById('department_id').value;
-    const locationId = document.getElementById('location_id').value;
-    const postingPeriodId = document.getElementById('posting_period_id').value;
-    
-    if (!departmentId || !locationId || !postingPeriodId) {
-        showToast('Please select Department, Location, and Posting Period before approving', 'warning');
-        return;
-    }
-    
-    if (confirm('Are you sure you want to approve and sync this invoice to NetSuite?')) {
-        showToast('Syncing invoice to NetSuite...', 'info');
-        performNetSuiteSync(invoiceId, departmentId, locationId, postingPeriodId)
-        .then(() => {
-            showToast('Invoice synced to NetSuite, approving in portal...', 'success');
-            return fetch(`${BASE_PATH}/api/invoices.php?action=approve&id=${invoiceId}`, {
-                method: 'POST'
-            })
-            .then(response => response.json());
-        })
-        .then(data => {
-            if (data.success) {
-                showToast('Invoice approved successfully', 'success');
-                setTimeout(() => {
-                    window.location.href = `${BASE_PATH}/buyer/invoices.php`;
-                }, 1500);
-            } else {
-                showToast('Error: ' + (data.error || 'Failed to approve invoice'), 'error');
-                throw new Error(data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast(error.message || 'Failed to complete approval and sync', 'error');
-        });
-    }
-}
-
-function requestCorrection(invoiceId) {
-    const reason = prompt('Enter reason for rejecting invoice:');
-    if (reason) {
-        fetch(`${BASE_PATH}/api/invoices.php?action=request_correction&id=${invoiceId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ correction_reason: reason })
+function submitInvoice(invoiceId) {
+    if (confirm('Are you sure you want to submit this invoice for review?')) {
+        showToast('Submitting invoice...', 'info');
+        fetch(`${BASE_PATH}/api/invoices.php?action=submit&id=${invoiceId}`, {
+            method: 'POST'
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast('Correction request sent', 'success');
+                showToast('Invoice submitted successfully', 'success');
                 setTimeout(() => {
-                    window.location.href = `${BASE_PATH}/buyer/invoices.php`;
+                    window.location.href = `${BASE_PATH}/vendor/invoices.php`;
                 }, 1500);
             } else {
-                showToast('Error: ' + (data.error || 'Failed to send correction request'), 'error');
+                showToast('Error: ' + (data.error || 'Failed to submit invoice'), 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast(error.message || 'Failed to send correction request', 'error');
+            showToast(error.message || 'Failed to submit invoice', 'error');
         });
     }
-}
-
-function syncToNetSuite(invoiceId) {
-    const departmentId = document.getElementById('department_id').value;
-    const locationId = document.getElementById('location_id').value;
-    const postingPeriodId = document.getElementById('posting_period_id').value;
-    
-    if (!departmentId || !locationId || !postingPeriodId) {
-        showToast('Please select Department, Location, and Posting Period before syncing', 'warning');
-        return;
-    }
-    
-    if (confirm('Are you sure you want to sync this invoice to NetSuite?')) {
-        return performNetSuiteSync(invoiceId, departmentId, locationId, postingPeriodId)
-            .then(() => {
-                showToast('Invoice synced to NetSuite successfully', 'success');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast(error.message || 'Failed to sync invoice to NetSuite', 'error');
-            });
-    }
-}
-
-function performNetSuiteSync(invoiceId, departmentId, locationId, postingPeriodId) {
-    return fetch(`${BASE_PATH}/api/invoices.php?action=sync_to_netsuite&id=${invoiceId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            department_id: departmentId,
-            location_id: locationId,
-            posting_period_id: postingPeriodId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.success) {
-            throw new Error(data.error || 'Failed to sync invoice');
-        }
-        return data;
-    });
 }
 </script>
 

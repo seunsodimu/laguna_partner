@@ -264,6 +264,47 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
+
+    <!-- Data Management Section -->
+    <h3 class="mt-5 mb-3">Data Management</h3>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Purchase Orders</h5>
+                </div>
+                <div class="card-body">
+                    <a href="<?= BASE_PATH ?>/admin/purchase-orders.php" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-file-earmark-check"></i> View & Filter
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Invoices</h5>
+                </div>
+                <div class="card-body">
+                    <a href="<?= BASE_PATH ?>/admin/invoices.php" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-receipt"></i> View & Filter
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">System Logs</h5>
+                </div>
+                <div class="card-body">
+                    <a href="<?= BASE_PATH ?>/admin/logs.php" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-file-text"></i> View Log Files
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>

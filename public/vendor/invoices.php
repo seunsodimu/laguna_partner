@@ -414,6 +414,7 @@ include __DIR__ . '/../includes/header.php';
 
 <script>
     const API_URL = '/api/';
+    const BASE_PATH = '<?php echo BASE_PATH; ?>';
     let currentInvoiceId = null;
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -511,67 +512,11 @@ include __DIR__ . '/../includes/header.php';
     }
 
     function viewInvoice(invoiceId) {
-        fetch(`${API_URL}invoices.php?action=get&id=${invoiceId}`)
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-                return res.text();
-            })
-            .then(text => {
-                try {
-                    const data = JSON.parse(text);
-                    if (data.success) {
-                        const inv = data.data;
-                        let html = `
-                            <div class="invoice-view">
-                                <h5>${inv.invoice_number}</h5>
-                                <hr>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <p><strong>Invoice Date:</strong> ${new Date(inv.invoice_date).toLocaleDateString()}</p>
-                                        <p><strong>Due Date:</strong> ${inv.due_date ? new Date(inv.due_date).toLocaleDateString() : '-'}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Status:</strong> <span class="badge status-${inv.status}">${inv.status.toUpperCase()}</span></p>
-                                        <p><strong>Total Amount:</strong> $${parseFloat(inv.amount_total).toFixed(2)}</p>
-                                    </div>
-                                </div>
-                                <h6>Line Items</h6>
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Description</th>
-                                            <th>Qty</th>
-                                            <th>Price</th>
-                                            <th>Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${inv.line_items.map(item => `
-                                            <tr>
-                                                <td>${item.description}</td>
-                                                <td>${item.quantity}</td>
-                                                <td>$${parseFloat(item.unit_price).toFixed(2)}</td>
-                                                <td>$${parseFloat(item.amount).toFixed(2)}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `;
-                        document.getElementById('modal-invoice-title').textContent = 'Invoice ' + inv.invoice_number;
-                        document.getElementById('modal-invoice-content').innerHTML = html;
-                        new bootstrap.Modal(document.getElementById('modalViewInvoice')).show();
-                    } else {
-                        alert('Error: ' + (data.error || 'Failed to load invoice'));
-                    }
-                } catch (e) {
-                    console.error('Invalid JSON response:', text.substring(0, 300));
-                    alert('Error: ' + e.message);
-                }
-            })
-            .catch(err => alert('Error loading invoice: ' + err.message));
+        window.location.href = `${BASE_PATH}/vendor/invoice-view.php?id=${invoiceId}`;
+    }
+
+    function editInvoice(invoiceId) {
+        window.location.href = `${BASE_PATH}/vendor/invoice-edit.php?id=${invoiceId}`;
     }
 
     function loadPaymentHistory() {

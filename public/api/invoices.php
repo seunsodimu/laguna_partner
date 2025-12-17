@@ -13,11 +13,13 @@ require_once '../../src/Database.php';
 require_once '../../src/Auth.php';
 require_once '../../src/TeamsService.php';
 require_once '../../src/NetSuiteClient.php';
+require_once '../../src/EmailService.php';
 
 use LagunaPartners\Database;
 use LagunaPartners\Auth;
 use LagunaPartners\TeamsService;
 use LagunaPartners\NetSuiteClient;
+use LagunaPartners\EmailService;
 
 if (!class_exists('Dotenv\Dotenv')) {
     require_once '../../vendor/autoload.php';
@@ -873,7 +875,24 @@ function approveInvoice($db, $user) {
 
     Auth::logActivity($user['id'], 'approve_invoice', 'invoice', ['status' => 'approved', 'entity_id' => $invoice_id]);
 
-    // TODO: Send email notification to vendor
+    try {
+        $vendor = $db->fetchOne("SELECT email FROM accounts WHERE id = ?", [$invoice['vendor_id']]);
+        if ($vendor && $vendor['email']) {
+            $emailService = new EmailService();
+            $variables = [
+                'invoice_number' => $invoice['invoice_number'],
+                'amount_total' => '$' . number_format($invoice['amount_total'], 2),
+                'currency' => $invoice['currency'] ?? 'USD',
+                'due_date' => $invoice['due_date'] ? date('M d, Y', strtotime($invoice['due_date'])) : 'N/A',
+                'estimated_payment_date' => $invoice['estimated_payment_date'] ? date('M d, Y', strtotime($invoice['estimated_payment_date'])) : 'To be determined',
+                'status' => 'Approved',
+                'portal_link' => ($_ENV['APP_BASE_PATH'] ?? '/laguna_partner') . '/vendor/invoice-view.php?id=' . $invoice_id
+            ];
+            $emailService->sendFromTemplate('invoice_approved', $vendor['email'], $variables);
+        }
+    } catch (Exception $e) {
+        error_log("Failed to send invoice approval email: " . $e->getMessage());
+    }
 
     echo json_encode([
         'success' => true,
@@ -938,7 +957,22 @@ function requestInvoiceCorrection($db, $user) {
         'entity_id' => $invoice_id
     ]);
 
-    // TODO: Send email notification to vendor
+    try {
+        $vendor = $db->fetchOne("SELECT email FROM accounts WHERE id = ?", [$invoice['vendor_id']]);
+        if ($vendor && $vendor['email']) {
+            $emailService = new EmailService();
+            $variables = [
+                'invoice_number' => $invoice['invoice_number'],
+                'amount_total' => '$' . number_format($invoice['amount_total'], 2),
+                'currency' => $invoice['currency'] ?? 'USD',
+                'correction_reason' => $data['correction_reason'] ?? '',
+                'portal_link' => ($_ENV['APP_BASE_PATH'] ?? '/laguna_partner') . '/vendor/invoice-edit.php?id=' . $invoice_id
+            ];
+            $emailService->sendFromTemplate('invoice_needs_correction', $vendor['email'], $variables);
+        }
+    } catch (Exception $e) {
+        error_log("Failed to send invoice correction email: " . $e->getMessage());
+    }
 
     echo json_encode([
         'success' => true,
@@ -1390,6 +1424,19 @@ function syncInvoiceToNetSuite($db, $invoiceId, $departmentId, $locationId, $pos
         $items = [];
         $lineNumber = 1;
         foreach ($line_items as $line) {
+            $itemId = null;
+            
+            if ($line['reference'] && is_numeric($line['reference'])) {
+                $poId = intval($line['reference']);
+                $poItem = $db->fetchOne(
+                    "SELECT item_id FROM po_items WHERE po_id = ? ORDER BY line_number LIMIT 1",
+                    [$poId]
+                );
+                if ($poItem && $poItem['item_id']) {
+                    $itemId = $poItem['item_id'];
+                }
+            }
+            
             $item = [
                 'amount' => floatval($line['amount']),
                 'department' => [
@@ -1402,7 +1449,7 @@ function syncInvoiceToNetSuite($db, $invoiceId, $departmentId, $locationId, $pos
                     ]
                 ],
                 'item' => [
-                    'id' => '12846'
+                    'id' => (string)($itemId ?? '')
                 ],
                 'line' => $lineNumber,
                 'location' => [

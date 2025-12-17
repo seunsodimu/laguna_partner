@@ -455,6 +455,30 @@ class EmailService {
     }
 
     /**
+     * Send email using template name and variables
+     */
+    public function sendFromTemplate($templateName, $toEmail, $variables) {
+        try {
+            $template = $this->db->fetchOne(
+                "SELECT * FROM email_templates WHERE name = ?",
+                [$templateName]
+            );
+
+            if (!$template) {
+                throw new \Exception("Email template '$templateName' not found");
+            }
+
+            $subject = $this->replaceVariables($template['subject'], $variables);
+            $body = $this->replaceVariables($template['body'], $variables);
+
+            return $this->send($toEmail, $subject, $body);
+        } catch (\Exception $e) {
+            $this->log("Error sending email from template $templateName to $toEmail: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Send PO rejection notification to buyer
      */
     public function sendPORejection($buyerEmail, $poData, $rejectionReason) {

@@ -60,6 +60,7 @@ curl --location 'https://11134099-sb1.suitetalk.api.netsuite.com/services/rest/r
 
 
 # Purchase order statuses:
+A = Pending Approval
 B = Pending Received
 E = Partially Received
 F = Pending Billing/Partially Received

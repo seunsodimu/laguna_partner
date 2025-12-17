@@ -196,6 +196,87 @@ include __DIR__ . '/../includes/header.php';
                 </div>
             </div>
             
+            <!-- API Endpoints -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-plug"></i> API Endpoints</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Purchase Order Sync Endpoint</h6>
+                        <p class="text-muted">Sync a specific purchase order to update its status and details.</p>
+                        
+                        <div class="mb-2">
+                            <strong>Endpoint:</strong>
+                            <code class="d-block bg-light p-2"><?php echo isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'your-domain.com'; ?><?php echo BASE_PATH; ?>/api/sync-purchase-order.php?id={id}</code>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Method:</strong> POST
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Authentication:</strong> Requires valid user session or API token
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Sample cURL Request:</strong>
+                            <pre class="bg-light p-3 rounded"><code>curl -X POST "<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http'); ?>://<?php echo isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'your-domain.com'; ?><?php echo BASE_PATH; ?>/api/sync-purchase-order.php?id=123" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: PHPSESSID=your_session_id" \
+  -d '{}'</code></pre>
+                        </div>
+                        
+                        <div>
+                            <strong>Response (Success):</strong>
+                            <pre class="bg-light p-3 rounded"><code>{
+  "success": true,
+  "message": "Purchase order synced successfully",
+  "data": {
+    "id": 123,
+    "tran_id": "PO-001",
+    "status": "open",
+    "updated_at": "2024-12-17T15:30:00Z"
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div>
+                        <h6 class="fw-bold">Other API Endpoints</h6>
+                        <ul class="list-unstyled">
+                            <li>
+                                <strong>Email Templates:</strong> 
+                                <code><?php echo BASE_PATH; ?>/api/email-templates.php</code>
+                                (GET list, POST create, PUT update, DELETE delete)
+                            </li>
+                            <li>
+                                <strong>User Logs:</strong>
+                                <code><?php echo BASE_PATH; ?>/api/user-logs.php</code>
+                                (GET list/search, GET stats)
+                            </li>
+                            <li>
+                                <strong>Logs Directory:</strong>
+                                <code><?php echo BASE_PATH; ?>/api/logs-directory.php</code>
+                                (GET list, GET read, GET download, DELETE delete)
+                            </li>
+                            <li>
+                                <strong>Purchase Orders:</strong>
+                                <code><?php echo BASE_PATH; ?>/api/admin-purchase-orders.php</code>
+                                (GET list/search)
+                            </li>
+                            <li>
+                                <strong>Invoices:</strong>
+                                <code><?php echo BASE_PATH; ?>/api/admin-invoices.php</code>
+                                (GET list/search)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Quick Actions -->
             <div class="card shadow-sm">
                 <div class="card-header">
