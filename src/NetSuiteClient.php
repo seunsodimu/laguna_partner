@@ -17,7 +17,7 @@ class NetSuiteClient {
         $this->config = require __DIR__ . '/../config/config.php';
         $this->credentials = require __DIR__ . '/../config/credentials.php';
         
-        $this->environment = getenv('NETSUITE_ENVIRONMENT') ?: 'sandbox';
+        $this->environment = getenv('NETSUITE_ENVIRONMENT') ?: 'production';
         $nsConfig = $this->credentials['netsuite'][$this->environment];
         
         $this->accountId = $nsConfig['account_id'];
