@@ -11,13 +11,23 @@ class NetSuiteClient {
     private $credentials;
     private $accountId;
     private $baseUrl;
+    private $environment;
 
     public function __construct() {
+        if (!class_exists('Dotenv\Dotenv')) {
+            require_once __DIR__ . '/../vendor/autoload.php';
+        }
+        
+        if (!isset($_ENV['NETSUITE_ENVIRONMENT'])) {
+            $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+            $dotenv->load();
+        }
+        
         $this->config = require __DIR__ . '/../config/config.php';
         $this->credentials = require __DIR__ . '/../config/credentials.php';
         
-        $env = $_ENV['NETSUITE_ENVIRONMENT'] ?? 'sandbox';
-        $nsConfig = $this->credentials['netsuite'][$env];
+        $this->environment = $_ENV['NETSUITE_ENVIRONMENT'] ?? 'sandbox';
+        $nsConfig = $this->credentials['netsuite'][$this->environment];
         
         $this->accountId = $nsConfig['account_id'];
         $this->baseUrl = $nsConfig['rest_url'];
@@ -27,8 +37,7 @@ class NetSuiteClient {
      * Generate OAuth 1.0 signature for NetSuite
      */
     private function generateOAuthHeader($url, $method = 'GET') {
-        $env = $_ENV['NETSUITE_ENVIRONMENT'] ?? 'sandbox';
-        $nsConfig = $this->credentials['netsuite'][$env];
+        $nsConfig = $this->credentials['netsuite'][$this->environment];
 
         $oauth = [
             'oauth_consumer_key' => $nsConfig['consumer_key'],
