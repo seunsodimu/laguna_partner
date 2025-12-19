@@ -526,7 +526,7 @@ CREATE TABLE IF NOT EXISTS `vendor_profiles` (
     `shipping_country` VARCHAR(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
     `preferred_communication` ENUM('email','phone','both') COLLATE utf8mb4_unicode_ci DEFAULT 'email',
     `notes` TEXT COLLATE utf8mb4_unicode_ci,
-    `term` INT NOT NULL DEFAULT '1',
+    `term` INT NULL DEFAULT '1',
     `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `vendor_id` (`vendor_id`),

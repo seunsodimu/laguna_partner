@@ -315,7 +315,7 @@ function handlePut($db, $userType, $userId) {
     $db->query($sql, $updateParams);
     
     // Log the change
-    Auth::logActivity($userId, 'update_po', "Updated PO #{$po['tranid']}", [
+    Auth::logActivity($userId, 'update_po', "Updated PO #{$po['tran_id']}", [
         'po_id' => $poId,
         'changes' => $changes
     ]);

@@ -236,10 +236,14 @@ function displayPOs(pos) {
         return;
     }
     
-    table.innerHTML = pos.map(po => `
-        <tr>
+    table.innerHTML = pos.map(po => {
+        const isRejected = po.rejection_reason;
+        const rowStyle = isRejected ? 'background-color: #ffe6e6;' : '';
+        const rejectionTitle = isRejected ? `title="${htmlEscape(po.rejection_reason)}"` : '';
+        return `
+        <tr style="${rowStyle}">
             <td>
-                <strong>${htmlEscape(po.tran_id)}</strong>
+                <strong>${htmlEscape(po.tran_id)}</strong><br>${isRejected ? '<small class="text-danger"><strong>Vendor Rejected</strong></small>' : ''}
             </td>
             <td>
                 ${htmlEscape(po.vendor_name)}
@@ -248,7 +252,7 @@ function displayPOs(pos) {
                 ${po.currency} ${formatCurrency(po.total_amount)}
             </td>
             <td>
-                <span class="badge bg-${getStatusBadgeColor(po.status)}">${htmlEscape(po.status_description || po.status)}</span>
+                <span class="badge bg-${getStatusBadgeColor(po.status)}">${htmlEscape(po.status_description || po.status)}</span>${isRejected ? `<br><span class="badge bg-danger mt-1" ${rejectionTitle}>Rejected</span>` : ''}
             </td>
             <td>
                 <small class="text-muted">${po.created_date ? new Date(po.created_date).toLocaleDateString() : 'N/A'}</small>
@@ -262,7 +266,8 @@ function displayPOs(pos) {
                 </a>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function displayPagination(pagination) {

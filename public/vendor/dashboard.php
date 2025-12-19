@@ -160,11 +160,15 @@ include __DIR__ . '/../includes/header.php';
                             <?php foreach ($purchaseOrders as $po): ?>
                                 <tr data-po-id="<?= $po['id'] ?>" 
                                     data-status="<?= htmlspecialchars($po['status']) ?>"
-                                    data-date="<?= htmlspecialchars($po['created_date']) ?>">
+                                    data-date="<?= htmlspecialchars($po['created_date']) ?>"
+                                    <?php if ($po['rejection_reason']): ?>style="background-color: #ffe6e6;"<?php endif; ?>>
                                     <td>
                                         <a href="#" class="text-decoration-none" onclick="viewPO(<?= $po['id'] ?>); return false;">
                                             <strong><?= htmlspecialchars($po['tran_id']) ?></strong>
                                         </a>
+                                        <?php if ($po['rejection_reason']): ?>
+                                        <br><small class="text-danger"><strong>Vendor Rejected</strong></small>
+                                        <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($po['vendor_name']) ?></td>
                                     <td>$<?= number_format($po['total_amount'], 2) ?></td>
@@ -172,6 +176,9 @@ include __DIR__ . '/../includes/header.php';
                                         <span class="badge bg-<?= getStatusColor($po['status']) ?>">
                                             <?= htmlspecialchars($po['status_text']) ?>
                                         </span>
+                                        <?php if ($po['rejection_reason']): ?>
+                                        <br><span class="badge bg-danger mt-1" title="<?= htmlspecialchars($po['rejection_reason']) ?>">Rejected</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td><?= date('m/d/Y', strtotime($po['created_date'])) ?></td>
                                     <td><?= $po['port_date'] ? date('m/d/Y', strtotime($po['port_date'])) : '-' ?></td>
@@ -300,31 +307,31 @@ function displayPODetails(po) {
         
         <div class="row mb-4">
             <div class="col-md-4">
-                <label class="form-label"><strong>Vessel Name</strong></label>
-                <input type="text" class="form-control" id="editVesselName" value="${po.vessel_name || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label required-field"><strong>Vessel Name</strong></label>
+                <input required type="text" class="form-control" id="editVesselName" value="${po.vessel_name || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>Vessel Identifier</strong></label>
-                <input type="text" class="form-control" id="editVesselIdentifier" value="${po.vessel_identifier || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label required-field"><strong>Vessel Identifier</strong></label>
+                <input required type="text" class="form-control" id="editVesselIdentifier" value="${po.vessel_identifier || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>Ex-Factory Date</strong>(Date items depart factory)</label>
-                <input type="date" class="form-control" id="editExpectedFactoryDate" value="${po.expected_factory_date || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label required-field"><strong>Ex-Factory Date</strong><span class="field-info"> (Date items depart factory)</span></label>
+                <input required type="date" class="form-control" id="editExpectedFactoryDate" value="${po.expected_factory_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
         </div>
         
         <div class="row mb-4">
             <div class="col-md-4">
-                <label class="form-label"><strong>Vessel Onboard Date</strong>(Date items boards ship)</label>
-                <input type="date" class="form-control" id="editPortDate" value="${po.port_date || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label required-field"><strong>Vessel Onboard Date</strong><span class="field-info"> (Date items boards ship)</span></label>
+                <input required type="date" class="form-control" id="editPortDate" value="${po.port_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>Vessel Ship Date</strong>(Date ship departs origin)</label>
-                <input type="date" class="form-control" id="editShipDate" value="${po.ship_date || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label required-field"><strong>Vessel Ship Date</strong><span class="field-info"> (Date ship departs origin)</span></label>
+                <input required type="date" class="form-control" id="editShipDate" value="${po.ship_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>US Delivery Date</strong>(Date items arrive at destination)</label>
-                <input type="date" class="form-control" id="editEstDelivery" value="${po.estimated_delivery_date || ''}" ${!canEdit ? 'disabled' : ''}>
+                <label class="form-label required-field"><strong>US Delivery Date</strong><span class="field-info"> (Date items arrive at destination)</span></label>
+                <input required type="date" class="form-control" id="editEstDelivery" value="${po.estimated_delivery_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
         </div>
         
@@ -498,7 +505,11 @@ function savePOChanges(poId) {
         estimated_delivery_date: document.getElementById('editEstDelivery').value,
         ship_date: document.getElementById('editShipDate').value
     };
-    
+    if (!data.vessel_name || !data.vessel_identifier || !data.expected_factory_date ||
+        !data.port_date || !data.est_delivery || !data.ship_date) {
+        showToast('Please fill in all required fields!', 'error');
+        return;
+    }
     fetch(`${BASE_PATH}/api/purchase-orders.php`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

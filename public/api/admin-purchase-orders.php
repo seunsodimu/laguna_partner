@@ -80,7 +80,7 @@ function listPurchaseOrders($db, $user) {
     $total_count = $total['count'];
     
     $pos = $db->fetchAll(
-        "SELECT id, tran_id, vendor_name, total_amount, currency, status, created_date, due_date " .
+        "SELECT id, tran_id, vendor_name, total_amount, currency, status, created_date, due_date, rejection_reason " .
         $baseQuery .
         " ORDER BY created_date DESC LIMIT ? OFFSET ?",
         [$limit, $offset]
@@ -157,7 +157,7 @@ function searchPurchaseOrders($db, $user) {
     $total_count = $total['count'];
     
     $pos = $db->fetchAll(
-        "SELECT id, tran_id, vendor_name, total_amount, currency, status, created_date, due_date " .
+        "SELECT id, tran_id, vendor_name, total_amount, currency, status, created_date, due_date, rejection_reason " .
         "FROM purchase_orders WHERE " . $whereClause .
         " ORDER BY created_date DESC LIMIT ? OFFSET ?",
         array_merge($params, [$limit, $offset])

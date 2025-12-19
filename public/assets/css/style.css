@@ -219,6 +219,16 @@ body {
     color: var(--danger-color);
 }
 
+/* required field indicator * to label */
+.required-field::after {
+    content: '*';
+    color: red;
+}
+.field-info {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
 /* Print Styles */
 @media print {
     .navbar,

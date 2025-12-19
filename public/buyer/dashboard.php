@@ -258,13 +258,16 @@ function displayPurchaseOrders(pos) {
         
         const status = statusMap[po.status] || { text: po.status, class: 'secondary' };
         const hasUpdates = parseInt(po.has_vendor_updates) === 1;
+        const isRejected = po.rejection_reason;
+        const rowStyle = isRejected ? 'background-color: #ffe6e6;' : '';
+        const rejectionTooltip = isRejected ? `title="${escapeHtml(po.rejection_reason)}"` : '';
         
         return `
-            <tr style="cursor: pointer;" onclick="window.location.href='${BASE_PATH}/buyer/purchase-order.php?id=${po.id}'">
-                <td><strong>${escapeHtml(po.tran_id)}</strong></td>
+            <tr style="cursor: pointer; ${rowStyle}" onclick="window.location.href='${BASE_PATH}/buyer/purchase-order.php?id=${po.id}'">
+                <td><strong>${escapeHtml(po.tran_id)}</strong><br>${isRejected ? '<small class="text-danger"><strong>Vendor Rejected</strong></small>' : ''}</td>
                 <td>${escapeHtml(po.company_name || 'N/A')}</td>
                 <td>$${parseFloat(po.total_amount || 0).toFixed(2)}</td>
-                <td><span class="badge bg-${status.class}">${status.text}</span></td>
+                <td><span class="badge bg-${status.class}">${status.text}</span>${isRejected ? `<br><span class="badge bg-danger mt-1" ${rejectionTooltip}>Rejected</span>` : ''}</td>
                 <td>${formatDate(po.created_date)}</td>
                 <td>${formatDate(po.port_date)}</td>
                 <td>${formatDate(po.estimated_delivery_date)}</td>
