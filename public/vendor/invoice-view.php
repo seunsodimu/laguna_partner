@@ -406,7 +406,7 @@ include __DIR__ . '/../includes/header.php';
                 <i class="bi bi-arrow-left me-2"></i> Back to Invoices
             </a>
             
-            <?php if ($invoice['status'] === 'draft'): ?>
+            <?php if (in_array($invoice['status'], ['draft', 'rejected'])): ?>
             <a href="<?php echo BASE_PATH; ?>/vendor/invoice-edit.php?id=<?php echo $invoice['id']; ?>" class="btn btn-primary">
                 <i class="bi bi-pencil me-2"></i> Edit Invoice
             </a>

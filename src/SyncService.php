@@ -209,7 +209,7 @@ class SyncService {
                 $this->db->insert('user_accounts', [
                     'user_id' => $userId,
                     'account_id' => $vendor['id'],
-                    'is_primary' => $email === $vendor['email']
+                    'is_primary' => (int)($email === $vendor['email'])
                 ]);
             }
         }
@@ -311,7 +311,7 @@ class SyncService {
                 $this->db->insert('user_accounts', [
                     'user_id' => $userId,
                     'account_id' => $dealer['id'],
-                    'is_primary' => $email === $dealer['email']
+                    'is_primary' => (int)($email === $dealer['email'])
                 ]);
             }
         }

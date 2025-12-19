@@ -23,7 +23,7 @@ if (!$invoice_id) {
 }
 
 $invoice = $db->fetchOne("SELECT * FROM invoices WHERE id = ? AND vendor_id = ?", [$invoice_id, $user['account_id']]);
-if (!$invoice || $invoice['status'] !== 'draft') {
+if (!$invoice || !in_array($invoice['status'], ['draft', 'rejected'])) {
     http_response_code(403);
     header('Location: ' . BASE_PATH . '/vendor/invoices.php');
     exit;

@@ -691,10 +691,10 @@ function updateInvoice($db, $user) {
         exit;
     }
 
-    // Only allow updates if status is draft
-    if ($invoice['status'] != 'draft') {
+    // Only allow updates if status is draft or rejected
+    if (!in_array($invoice['status'], ['draft', 'rejected'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'Can only edit invoices in draft status']);
+        echo json_encode(['error' => 'Can only edit invoices in draft or rejected status']);
         exit;
     }
 
@@ -930,10 +930,10 @@ function requestInvoiceCorrection($db, $user) {
         exit;
     }
 
-    // Update status to draft (allows vendor to edit)
+    // Update status to rejected
     $db->query("
         UPDATE invoices SET
-            status = 'draft',
+            status = 'rejected',
             reviewed_by_user_id = ?,
             reviewed_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP
@@ -1087,11 +1087,11 @@ function uploadInvoiceAttachment($db, $user) {
         exit;
     }
 
-    // Only vendors can upload to their own drafts, buyers/admins can upload anytime
+    // Only vendors can upload to their own drafts/rejected invoices, buyers/admins can upload anytime
     if ($user['type'] == 'vendor') {
-        if ($invoice['vendor_id'] != $user['account_id'] || $invoice['status'] != 'draft') {
+        if ($invoice['vendor_id'] != $user['account_id'] || !in_array($invoice['status'], ['draft', 'rejected'])) {
             http_response_code(403);
-            echo json_encode(['error' => 'You can only upload documents to your draft invoices']);
+            echo json_encode(['error' => 'You can only upload documents to your draft or rejected invoices']);
             exit;
         }
     }
