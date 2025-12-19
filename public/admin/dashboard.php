@@ -16,7 +16,7 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
 // Define base path for redirects
-define('BASE_PATH', $_ENV['APP_BASE_PATH'] ?? '/laguna_partner');
+define('BASE_PATH', getenv('APP_BASE_PATH') ?: '/laguna_partner');
 
 session_start();
 
@@ -305,6 +305,69 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
+
+    <!-- Production Reset Section -->
+    <h3 class="mt-5 mb-3">Production Reset</h3>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Reset Portal Data</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Clear all user accounts (except admin), purchase orders, invoices, and related data to make the portal production-ready. 
+                        <strong class="text-danger">This action cannot be undone!</strong>
+                    </p>
+                    <button class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#resetConfirmModal">
+                        <i class="bi bi-trash"></i> Reset Portal
+                    </button>
+                    <div id="resetStatus" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-labelledby="resetConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="resetConfirmLabel"><i class="bi bi-exclamation-circle"></i> Confirm Portal Reset</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert">
+                    <strong>WARNING:</strong> This action will permanently delete:
+                </div>
+                <ul class="mb-3">
+                    <li>All user accounts (except admin)</li>
+                    <li>All purchase orders and documents</li>
+                    <li>All invoices and attachments</li>
+                    <li>All messages and conversations</li>
+                    <li>All payment records</li>
+                    <li>All sync logs and user logs</li>
+                    <li>All vendor profiles and documents</li>
+                </ul>
+                <p class="text-muted">
+                    <strong>This action CANNOT be undone.</strong> Please ensure you have a database backup before proceeding.
+                </p>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmReset" required>
+                    <label class="form-check-label" for="confirmReset">
+                        I understand this will permanently delete all data and I have backed up the database
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmResetBtn" onclick="executeReset()" disabled>
+                    <i class="bi bi-trash"></i> Proceed with Reset
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -389,6 +452,61 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+document.getElementById('confirmReset').addEventListener('change', function() {
+    document.getElementById('confirmResetBtn').disabled = !this.checked;
+});
+
+function executeReset() {
+    const statusDiv = document.getElementById('resetStatus');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('resetConfirmModal'));
+    const btn = document.getElementById('confirmResetBtn');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Resetting...';
+    
+    fetch('<?= BASE_PATH ?>/api/reset.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: true })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+            }).catch(jsonError => {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            modal.hide();
+            statusDiv.innerHTML = `<div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> <strong>Reset Complete!</strong>
+                <br>Portal has been reset successfully.
+                <br><small>${data.deleted_records} records deleted in ${data.duration_ms}ms</small>
+                <br><button class="btn btn-sm btn-primary mt-2" onclick="location.reload()">Reload Page</button>
+            </div>`;
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">
+                <i class="bi bi-x-circle"></i> <strong>Error:</strong> ${escapeHtml(data.message)}
+            </div>`;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        statusDiv.innerHTML = `<div class="alert alert-danger">
+            <i class="bi bi-x-circle"></i> <strong>Failed to reset:</strong><br>
+            ${escapeHtml(error.message || error.toString())}
+        </div>`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash"></i> Proceed with Reset';
+    });
 }
 </script>
 

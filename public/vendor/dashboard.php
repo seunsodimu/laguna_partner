@@ -16,7 +16,7 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
 // Define base path for redirects
-define('BASE_PATH', $_ENV['APP_BASE_PATH'] ?? '/laguna_partner');
+define('BASE_PATH', getenv('APP_BASE_PATH') ?: '/laguna_partner');
 
 Auth::requireAuth(['vendor']);
 
@@ -160,15 +160,11 @@ include __DIR__ . '/../includes/header.php';
                             <?php foreach ($purchaseOrders as $po): ?>
                                 <tr data-po-id="<?= $po['id'] ?>" 
                                     data-status="<?= htmlspecialchars($po['status']) ?>"
-                                    data-date="<?= htmlspecialchars($po['created_date']) ?>"
-                                    <?php if ($po['rejection_reason']): ?>style="background-color: #ffe6e6;"<?php endif; ?>>
+                                    data-date="<?= htmlspecialchars($po['created_date']) ?>">
                                     <td>
                                         <a href="#" class="text-decoration-none" onclick="viewPO(<?= $po['id'] ?>); return false;">
                                             <strong><?= htmlspecialchars($po['tran_id']) ?></strong>
                                         </a>
-                                        <?php if ($po['rejection_reason']): ?>
-                                        <br><small class="text-danger"><strong>Vendor Rejected</strong></small>
-                                        <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($po['vendor_name']) ?></td>
                                     <td>$<?= number_format($po['total_amount'], 2) ?></td>
@@ -176,9 +172,6 @@ include __DIR__ . '/../includes/header.php';
                                         <span class="badge bg-<?= getStatusColor($po['status']) ?>">
                                             <?= htmlspecialchars($po['status_text']) ?>
                                         </span>
-                                        <?php if ($po['rejection_reason']): ?>
-                                        <br><span class="badge bg-danger mt-1" title="<?= htmlspecialchars($po['rejection_reason']) ?>">Rejected</span>
-                                        <?php endif; ?>
                                     </td>
                                     <td><?= date('m/d/Y', strtotime($po['created_date'])) ?></td>
                                     <td><?= $po['port_date'] ? date('m/d/Y', strtotime($po['port_date'])) : '-' ?></td>
@@ -315,22 +308,22 @@ function displayPODetails(po) {
                 <input required type="text" class="form-control" id="editVesselIdentifier" value="${po.vessel_identifier || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label required-field"><strong>Ex-Factory Date</strong><span class="field-info"> (Date items depart factory)</span></label>
+                <label class="form-label required-field"><strong>Ex-Factory Date</strong> <span class="field-info">(Date items depart factory)</span></label>
                 <input required type="date" class="form-control" id="editExpectedFactoryDate" value="${po.expected_factory_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
         </div>
         
         <div class="row mb-4">
             <div class="col-md-4">
-                <label class="form-label required-field"><strong>Vessel Onboard Date</strong><span class="field-info"> (Date items boards ship)</span></label>
+                <label class="form-label required-field"><strong>Vessel Onboard Date</strong> <span class="field-info">(Date items boards ship)</span></label>
                 <input required type="date" class="form-control" id="editPortDate" value="${po.port_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label required-field"><strong>Vessel Ship Date</strong><span class="field-info"> (Date ship departs origin)</span></label>
+                <label class="form-label required-field"><strong>Vessel Ship Date</strong> <span class="field-info">(Date ship departs origin)</span></label>
                 <input required type="date" class="form-control" id="editShipDate" value="${po.ship_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
             <div class="col-md-4">
-                <label class="form-label required-field"><strong>US Delivery Date</strong><span class="field-info"> (Date items arrive at destination)</span></label>
+                <label class="form-label required-field"><strong>US Delivery Date</strong> <span class="field-info">(Date items arrive at destination)</span></label>
                 <input required type="date" class="form-control" id="editEstDelivery" value="${po.estimated_delivery_date || ''}" ${!canEdit ? 'disabled' : ''}>
             </div>
         </div>
@@ -505,11 +498,13 @@ function savePOChanges(poId) {
         estimated_delivery_date: document.getElementById('editEstDelivery').value,
         ship_date: document.getElementById('editShipDate').value
     };
-    if (!data.vessel_name || !data.vessel_identifier || !data.expected_factory_date ||
-        !data.port_date || !data.est_delivery || !data.ship_date) {
-        showToast('Please fill in all required fields!', 'error');
+
+    if ((data.vessel_name === '') || (data.vessel_identifier === '') || (data.expected_factory_date === '') ||
+        (data.port_date === '') || (data.estimated_delivery_date === '') || (data.ship_date === '')) {
+        showToast('Please fill in all fields', 'error');
         return;
     }
+    
     fetch(`${BASE_PATH}/api/purchase-orders.php`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -519,7 +514,7 @@ function savePOChanges(poId) {
     .then(data => {
         if (data.success) {
             showToast(data.message, 'success');
-            location.reload();
+            setTimeout(() => location.reload(), 2000);
         } else {
             showToast('Error: ' + data.message, 'error');
         }
