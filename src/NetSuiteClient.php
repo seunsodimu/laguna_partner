@@ -14,19 +14,10 @@ class NetSuiteClient {
     private $environment;
 
     public function __construct() {
-        if (!class_exists('Dotenv\Dotenv')) {
-            require_once __DIR__ . '/../vendor/autoload.php';
-        }
-        
-        if (!isset($_ENV['NETSUITE_ENVIRONMENT'])) {
-            $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-            $dotenv->load();
-        }
-        
         $this->config = require __DIR__ . '/../config/config.php';
         $this->credentials = require __DIR__ . '/../config/credentials.php';
         
-        $this->environment = $_ENV['NETSUITE_ENVIRONMENT'] ?? 'sandbox';
+        $this->environment = getenv('NETSUITE_ENVIRONMENT') ?: 'sandbox';
         $nsConfig = $this->credentials['netsuite'][$this->environment];
         
         $this->accountId = $nsConfig['account_id'];
@@ -158,7 +149,7 @@ class NetSuiteClient {
         ];
 
         // Allow disabling SSL verification for local development
-        $verifySSL = ($_ENV['NETSUITE_VERIFY_SSL'] ?? 'true') === 'true';
+        $verifySSL = (getenv('NETSUITE_VERIFY_SSL') ?: 'true') === 'true';
 
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,

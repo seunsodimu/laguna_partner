@@ -22,7 +22,7 @@ return [
         'name' => 'Laguna Partners Portal',
         'version' => '1.0.0',
         'timezone' => 'America/New_York',
-        'debug' => filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'debug' => filter_var(getenv('APP_DEBUG') ?: false, FILTER_VALIDATE_BOOLEAN),
     ],
 
     // Logging Configuration
@@ -36,11 +36,11 @@ return [
     // Database Configuration
     'database' => [
         'enabled' => true,
-        'host' => $_ENV['DB_HOST'] ?? 'localhost',
-        'port' => $_ENV['DB_PORT'] ?? 3306,
-        'database' => $_ENV['DB_NAME'] ?? 'laguna_partner',
-        'username' => $_ENV['DB_USER'] ?? 'root',
-        'password' => $_ENV['DB_PASS'] ?? '',
+        'host' => getenv('DB_HOST') ?: 'localhost',
+        'port' => getenv('DB_PORT') ?: 3306,
+        'database' => getenv('DB_NAME') ?: 'laguna_partner',
+        'username' => getenv('DB_USER') ?: 'root',
+        'password' => getenv('DB_PASS') ?: '',
         'charset' => 'utf8mb4',
     ],
 
@@ -54,9 +54,9 @@ return [
     // Email Notification Settings
     'notifications' => [
         'enabled' => true,
-        'from_email' => $_ENV['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@lagunatools.com',
-        'from_name' => $_ENV['NOTIFICATION_FROM_NAME'] ?? 'Laguna Partners Portal',
-        'to_emails' => explode(',', $_ENV['NOTIFICATION_TO_EMAILS'] ?? 'seun_sodimu@lagunatools.com'),
+        'from_email' => getenv('NOTIFICATION_FROM_EMAIL') ?: 'noreply@lagunatools.com',
+        'from_name' => getenv('NOTIFICATION_FROM_NAME') ?: 'Laguna Partners Portal',
+        'to_emails' => explode(',', getenv('NOTIFICATION_TO_EMAILS') ?: 'seun_sodimu@lagunatools.com'),
         'subject_prefix' => '[Laguna Partners] ',
     ],
 
@@ -91,7 +91,7 @@ return [
     'session' => [
         'lifetime' => 3600, // 1 hour
         'name' => 'LAGUNA_SESSION',
-        'secure' => filter_var($_ENV['SESSION_SECURE'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'secure' => filter_var(getenv('SESSION_SECURE') ?: false, FILTER_VALIDATE_BOOLEAN),
         'httponly' => true,
         'samesite' => 'Lax',
     ],
