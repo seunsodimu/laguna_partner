@@ -46,6 +46,9 @@ include __DIR__ . '/../includes/header.php';
             <p class="text-muted">Manage email templates for system notifications</p>
         </div>
         <div class="col-md-4 text-end">
+            <button class="btn btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#testEmailModal">
+                <i class="bi bi-envelope-check"></i> Test Email
+            </button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#templateModal" onclick="openCreateModal()">
                 <i class="bi bi-plus-circle"></i> New Template
             </button>
@@ -137,6 +140,31 @@ include __DIR__ . '/../includes/header.php';
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="saveTemplate()">Save Template</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="testEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Email Sending</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="testEmailForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Test Email Address *</label>
+                        <input type="email" class="form-control" id="testEmailAddress" placeholder="admin@example.com" required>
+                        <small class="text-muted">Enter an email address to receive the test email</small>
+                    </div>
+                    <div id="testEmailResult" style="display: none;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="sendTestEmailBtn" onclick="sendTestEmail()">Send Test Email</button>
             </div>
         </div>
     </div>
@@ -261,6 +289,72 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function sendTestEmail() {
+    const email = document.getElementById('testEmailAddress').value.trim();
+    const resultDiv = document.getElementById('testEmailResult');
+    const sendBtn = document.getElementById('sendTestEmailBtn');
+    
+    if (!email) {
+        showToast('Please enter an email address', 'warning');
+        return;
+    }
+    
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+    resultDiv.style.display = 'none';
+    
+    fetch(`${BASE_PATH}/api/email.php?action=test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = 'Send Test Email';
+        resultDiv.style.display = 'block';
+        
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>Success!</strong><br>
+                    ${escapeHtml(data.message)}<br>
+                    <small class="text-muted">Provider: ${escapeHtml(data.provider.toUpperCase())} | Time: ${escapeHtml(data.timestamp)}</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            showToast('Test email sent successfully', 'success');
+        } else {
+            resultDiv.innerHTML = `
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <strong>Error!</strong><br>
+                    ${escapeHtml(data.message || 'Failed to send test email')}<br>
+                    <small class="text-muted">Check the application logs for more details.</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            showToast('Failed to send test email', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = 'Send Test Email';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Error!</strong><br>
+                An unexpected error occurred while sending the test email.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        showToast('Failed to send test email', 'error');
+    });
 }
 </script>
 

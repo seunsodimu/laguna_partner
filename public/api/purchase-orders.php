@@ -421,7 +421,7 @@ function addComment($db, $userId, $data) {
 }
 
 function approveChanges($db, $userType, $userId, $data) {
-    if (!in_array($userType, ['buyer', 'admin'])) {
+    if (!in_array($userType, ['buyer', 'admin', 'user'])) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'Only buyers can approve changes']);
         return;

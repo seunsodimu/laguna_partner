@@ -237,6 +237,8 @@ class EmailService {
         $curlError = curl_error($ch);
         curl_close($ch);
 
+        $this->log("Brevo Response - HTTP $httpCode - Body: $response - cURL Error: " . ($curlError ?: 'none'));
+
         if ($httpCode >= 200 && $httpCode < 300) {
             $this->log("Email sent successfully to $to (HTTP $httpCode)");
             return true;
@@ -249,7 +251,7 @@ class EmailService {
     /**
      * Send email via Amazon SES
      */
-    private function sendViaSES($to, $subject, $body, $html = false) {
+    private function sendViaSES($to, $subject, $body, $html = false, $allowFallback = true) {
         $accessKey = $_ENV['AWS_ACCESS_KEY_ID'] ?? null;
         $secretKey = $_ENV['AWS_SECRET_ACCESS_KEY'] ?? null;
         $region = $_ENV['AWS_SES_REGION'] ?? 'us-east-1';
@@ -257,8 +259,11 @@ class EmailService {
         $fromName = trim($this->config['notifications']['from_name'], '"');
         
         if (!$accessKey || !$secretKey) {
-            $this->log("AWS SES credentials not configured (AccessKey: " . (!$accessKey ? 'missing' : 'set') . ", SecretKey: " . (!$secretKey ? 'missing' : 'set') . "), falling back to Brevo");
-            return $this->sendViaBrevo($to, $subject, $body, $html);
+            $this->log("AWS SES credentials not configured (AccessKey: " . (!$accessKey ? 'missing' : 'set') . ", SecretKey: " . (!$secretKey ? 'missing' : 'set') . ")" . ($allowFallback ? ", falling back to Brevo" : ""));
+            if ($allowFallback) {
+                return $this->sendViaBrevo($to, $subject, $body, $html);
+            }
+            return false;
         }
 
         $this->log("Sending email via AWS SES to $to (Region: $region) with subject: $subject");
@@ -301,26 +306,31 @@ class EmailService {
                 return true;
             } else {
                 $this->log("SES email failed: {$response['error']} | Details: {$response['details']}");
-                // Fallback to Brevo
-                $this->log("Falling back to Brevo due to SES failure...");
-                return $this->sendViaBrevo($to, $subject, $body, $html);
+                if ($allowFallback) {
+                    // Fallback to Brevo
+                    $this->log("Falling back to Brevo due to SES failure...");
+                    return $this->sendViaBrevo($to, $subject, $body, $html);
+                }
+                return false;
             }
         } catch (\Throwable $e) {
             $this->log("Exception during SES call: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
-            // Fallback to Brevo
-            $this->log("Falling back to Brevo due to exception in SES...");
-            return $this->sendViaBrevo($to, $subject, $body, $html);
+            if ($allowFallback) {
+                // Fallback to Brevo
+                $this->log("Falling back to Brevo due to exception in SES...");
+                return $this->sendViaBrevo($to, $subject, $body, $html);
+            }
+            return false;
         }
     }
 
     /**
-     * Make AWS SES API request with SigV4 signing
+     * Make AWS SES API request with SigV4 signing (Query API format)
      */
     private function makeSESRequest($action, $data, $region, $accessKey, $secretKey) {
         $host = "email.$region.amazonaws.com";
         $endpoint = "https://$host/";
         $service = 'ses';
-        $amzTarget = "GraniteServiceVersion20120905.$action";
         $algorithm = 'AWS4-HMAC-SHA256';
         
         // Use UTC for AWS SigV4 signing
@@ -328,19 +338,39 @@ class EmailService {
         $dateStamp = gmdate('Ymd');
         $credentialScope = $dateStamp . "/$region/$service/aws4_request";
 
-        // Create canonical request
-        $payload = json_encode($data);
+        // Build query string for SES Query API
+        $queryParams = [
+            'Action' => $action,
+            'Source' => $data['Source'],
+            'Destination.ToAddresses.member.1' => $data['Destination']['ToAddresses'][0],
+            'Message.Subject.Data' => $data['Message']['Subject']['Data'],
+            'Message.Subject.Charset' => $data['Message']['Subject']['Charset']
+        ];
+
+        if (isset($data['Message']['Body']['Html'])) {
+            $queryParams['Message.Body.Html.Data'] = $data['Message']['Body']['Html']['Data'];
+            $queryParams['Message.Body.Html.Charset'] = $data['Message']['Body']['Html']['Charset'];
+        } else {
+            $queryParams['Message.Body.Text.Data'] = $data['Message']['Body']['Text']['Data'];
+            $queryParams['Message.Body.Text.Charset'] = $data['Message']['Body']['Text']['Charset'];
+        }
+
+        // Sort params for canonical request
+        ksort($queryParams);
+        
+        // Build URL encoded payload
+        $payload = http_build_query($queryParams, '', '&', PHP_QUERY_RFC3986);
         $hashedPayload = hash('sha256', $payload);
 
+        // Create canonical request
         $canonicalRequest = "POST\n";
         $canonicalRequest .= "/\n";
         $canonicalRequest .= "\n";
-        $canonicalRequest .= "content-type:application/x-amz-json-1.1\n";
+        $canonicalRequest .= "content-type:application/x-www-form-urlencoded; charset=utf-8\n";
         $canonicalRequest .= "host:$host\n";
         $canonicalRequest .= "x-amz-date:$timestamp\n";
-        $canonicalRequest .= "x-amz-target:$amzTarget\n";
         $canonicalRequest .= "\n";
-        $canonicalRequest .= "content-type;host;x-amz-date;x-amz-target\n";
+        $canonicalRequest .= "content-type;host;x-amz-date\n";
         $canonicalRequest .= $hashedPayload;
 
         $hashedCanonicalRequest = hash('sha256', $canonicalRequest);
@@ -356,7 +386,7 @@ class EmailService {
         $signature = hash_hmac('sha256', $stringToSign, $kSigning);
 
         // Build authorization header
-        $authorizationHeader = "$algorithm Credential=$accessKey/$credentialScope, SignedHeaders=content-type;host;x-amz-date;x-amz-target, Signature=$signature";
+        $authorizationHeader = "$algorithm Credential=$accessKey/$credentialScope, SignedHeaders=content-type;host;x-amz-date, Signature=$signature";
 
         // Make the request
         $ch = curl_init($endpoint);
@@ -364,8 +394,8 @@ class EmailService {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_HTTPHEADER => [
-                'Content-Type: application/x-amz-json-1.1',
-                "X-Amz-Target: $amzTarget",
+                'Content-Type: application/x-www-form-urlencoded; charset=utf-8',
+                "Host: $host",
                 "X-Amz-Date: $timestamp",
                 "Authorization: $authorizationHeader"
             ],
@@ -377,6 +407,8 @@ class EmailService {
         $curlError = curl_error($ch);
         curl_close($ch);
 
+        $this->log("SES Response - HTTP $httpCode - Body: $response - cURL Error: " . ($curlError ?: 'none'));
+
         if ($curlError) {
             $errorMsg = "cURL Error: $curlError (HTTP $httpCode)";
             $this->log("SES cURL Error: $errorMsg, Response: $response");
@@ -387,18 +419,28 @@ class EmailService {
             ];
         }
 
-        $responseData = json_decode($response, true);
-
         if ($httpCode >= 200 && $httpCode < 300) {
-            $messageId = $responseData['MessageId'] ?? 'unknown';
+            // Parse XML response for MessageId
+            $xml = simplexml_load_string($response);
+            $messageId = $xml ? (string)$xml->SendEmailResult->MessageId : 'unknown';
             $this->log("SES request successful. MessageId: $messageId");
             return [
                 'success' => true,
                 'messageId' => $messageId
             ];
         } else {
-            $error = $responseData['__type'] ?? 'Unknown Error';
-            $message = $responseData['message'] ?? $response;
+            // Parse XML error response
+            $error = 'Unknown Error';
+            $message = $response;
+            try {
+                $xml = simplexml_load_string($response);
+                if ($xml && isset($xml->Error->Code)) {
+                    $error = (string)$xml->Error->Code;
+                    $message = (string)$xml->Error->Message;
+                }
+            } catch (\Throwable $e) {
+                $this->log("Failed to parse SES error response: " . $e->getMessage());
+            }
             $errorDetails = "$error: $message (HTTP $httpCode)";
             $this->log("SES request failed: $errorDetails");
             return [
@@ -517,5 +559,74 @@ class EmailService {
         }
 
         return $baseUrl;
+    }
+
+    /**
+     * Send test email with configured provider only (no fallback)
+     */
+    public function testEmailSend($email) {
+        try {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'success' => false,
+                    'error' => 'Invalid email address',
+                    'message' => 'The provided email address is not valid'
+                ];
+            }
+
+            $this->log("Test email requested to: $email via provider: $this->provider");
+            
+            $subject = '[TEST] Laguna Partners Portal - Email Service Test';
+            $body = "This is a test email from the Laguna Partners Portal.\n\n" .
+                    "Email Provider: " . strtoupper($this->provider) . "\n" .
+                    "Sent at: " . date('Y-m-d H:i:s') . "\n" .
+                    "Test successful if you received this email.\n\n" .
+                    "---\n" .
+                    "Laguna Partners Portal\n" .
+                    "Do not reply to this email.";
+
+            $result = $this->sendTestViaProvider($email, $subject, $body);
+
+            if ($result) {
+                $this->log("Test email sent successfully to $email via $this->provider");
+                return [
+                    'success' => true,
+                    'message' => 'Test email sent successfully to ' . htmlspecialchars($email),
+                    'provider' => $this->provider,
+                    'timestamp' => date('Y-m-d H:i:s')
+                ];
+            } else {
+                $this->log("Test email failed for $email via $this->provider");
+                return [
+                    'success' => false,
+                    'error' => 'Failed to send test email',
+                    'message' => 'The test email could not be sent using ' . strtoupper($this->provider) . '. Check the logs for details.',
+                    'provider' => $this->provider
+                ];
+            }
+        } catch (\Exception $e) {
+            $this->log("Exception during test email to $email via $this->provider: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => 'Exception occurred',
+                'message' => 'An error occurred while sending the test email via ' . strtoupper($this->provider) . ': ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Send test email via configured provider only (no fallback)
+     */
+    private function sendTestViaProvider($to, $subject, $body, $html = false) {
+        $this->log("sendTestViaProvider called with provider: $this->provider, to: $to");
+        
+        if ($this->provider === 'brevo') {
+            return $this->sendViaBrevo($to, $subject, $body, $html);
+        } elseif ($this->provider === 'ses') {
+            return $this->sendViaSES($to, $subject, $body, $html, false);
+        } else {
+            $this->log("Unknown provider: $this->provider. Using PHP mail() for test.");
+            return $this->sendViaPHPMail($to, $subject, $body, $html);
+        }
     }
 }

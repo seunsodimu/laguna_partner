@@ -54,7 +54,7 @@ return [
     // Email Notification Settings
     'notifications' => [
         'enabled' => true,
-        'from_email' => getenv('NOTIFICATION_FROM_EMAIL') ?: 'noreply@lagunatools.com',
+        'from_email' => getenv('NOTIFICATION_FROM_EMAIL') ?: 'web_dev@lagunatools.com',
         'from_name' => getenv('NOTIFICATION_FROM_NAME') ?: 'Laguna Partners Portal',
         'to_emails' => explode(',', getenv('NOTIFICATION_TO_EMAILS') ?: 'seun_sodimu@lagunatools.com'),
         'subject_prefix' => '[Laguna Partners] ',
