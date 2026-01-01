@@ -1,0 +1,47 @@
+laguna_partner_db  | 2025-12-29 18:45:30+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.43-1.el9 started.
+laguna_partner_db  | 2025-12-29 18:45:30+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+laguna_partner_db  | 2025-12-29 18:45:30+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.43-1.el9 started.
+laguna_partner_db  | 2025-12-29 18:45:30+00:00 [Note] [Entrypoint]: Initializing database files
+laguna_partner_db  | 2025-12-29T18:45:30.966236Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+laguna_partner_db  | 2025-12-29T18:45:30.966407Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.0.43) initializing of server in progress as process 80
+laguna_partner_db  | 2025-12-29T18:45:30.977340Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+laguna_partner_db  | 2025-12-29T18:45:32.043264Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+laguna_partner_db  | 2025-12-29T18:45:34.369121Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+laguna_partner_db  | 2025-12-29 18:45:38+00:00 [Note] [Entrypoint]: Database files initialized
+laguna_partner_db  | 2025-12-29 18:45:38+00:00 [Note] [Entrypoint]: Starting temporary server
+laguna_partner_db  | 2025-12-29T18:45:39.175768Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+laguna_partner_db  | 2025-12-29T18:45:39.178638Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.43) starting as process 124
+laguna_partner_db  | 2025-12-29T18:45:39.201131Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+laguna_partner_db  | 2025-12-29T18:45:39.511433Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+laguna_partner_db  | 2025-12-29T18:45:39.847944Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+laguna_partner_db  | 2025-12-29T18:45:39.848075Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+laguna_partner_db  | 2025-12-29T18:45:39.852551Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+laguna_partner_db  | 2025-12-29T18:45:39.878208Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+laguna_partner_db  | 2025-12-29T18:45:39.878440Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.43'  socket: '/var/run/mysqld/mysqld.sock'  port: 0  MySQL Community Server - GPL.
+laguna_partner_db  | 2025-12-29 18:45:39+00:00 [Note] [Entrypoint]: Temporary server started.
+laguna_partner_db  | '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+laguna_partner_db  | Warning: Unable to load '/usr/share/zoneinfo/iso3166.tab' as time zone. Skipping it.
+laguna_partner_db  | Warning: Unable to load '/usr/share/zoneinfo/leap-seconds.list' as time zone. Skipping it.
+laguna_partner_db  | Warning: Unable to load '/usr/share/zoneinfo/leapseconds' as time zone. Skipping it.
+laguna_partner_db  | Warning: Unable to load '/usr/share/zoneinfo/tzdata.zi' as time zone. Skipping it.
+laguna_partner_db  | Warning: Unable to load '/usr/share/zoneinfo/zone.tab' as time zone. Skipping it.
+laguna_partner_db  | Warning: Unable to load '/usr/share/zoneinfo/zone1970.tab' as time zone. Skipping it.
+laguna_partner_db  | 2025-12-29 18:45:43+00:00 [Note] [Entrypoint]: Creating database laguna_partner
+laguna_partner_db  | 
+laguna_partner_db  | 2025-12-29 18:45:43+00:00 [Note] [Entrypoint]: /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/00_schema.sql
+laguna_partner_db  | ERROR 1452 (23000) at line 640: Cannot add or update a child row: a foreign key constraint fails (`laguna_partner`.`teams_webhook_config`, CONSTRAINT `teams_webhook_config_ibfk_2` FOREIGN KEY (`updated_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL)
+laguna_partner_db  | 2025-12-29 18:45:50+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.43-1.el9 started.
+laguna_partner_db  | 2025-12-29 18:45:51+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+laguna_partner_db  | 2025-12-29 18:45:51+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.43-1.el9 started.
+laguna_partner_db  | '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+laguna_partner_db  | 2025-12-29T18:45:51.605804Z 0 [Warning] [MY-011068] [Server] The syntax '--skip-host-cache' is deprecated and will be removed in a future release. Please use SET GLOBAL host_cache_size=0 instead.
+laguna_partner_db  | 2025-12-29T18:45:51.607744Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.43) starting as process 1
+laguna_partner_db  | 2025-12-29T18:45:51.618846Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+laguna_partner_db  | 2025-12-29T18:45:54.544619Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+laguna_partner_db  | 2025-12-29T18:45:54.640402Z 0 [System] [MY-010229] [Server] Starting XA crash recovery...
+laguna_partner_db  | 2025-12-29T18:45:54.663955Z 0 [System] [MY-010232] [Server] XA crash recovery finished.
+laguna_partner_db  | 2025-12-29T18:45:54.771545Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+laguna_partner_db  | 2025-12-29T18:45:54.771590Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+laguna_partner_db  | 2025-12-29T18:45:54.778446Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+laguna_partner_db  | 2025-12-29T18:45:54.793404Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+laguna_partner_db  | 2025-12-29T18:45:54.793493Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.43'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
