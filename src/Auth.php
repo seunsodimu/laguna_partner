@@ -264,6 +264,21 @@ class Auth {
     }
 
     /**
+     * Check if current user is admin
+     */
+    public static function isAdmin() {
+        if (!self::check()) {
+            return false;
+        }
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        return ($_SESSION['user_type'] ?? null) === 'user' && ($_SESSION['role'] ?? null) === 'admin';
+    }
+
+    /**
      * Logout user
      */
     public static function logout() {

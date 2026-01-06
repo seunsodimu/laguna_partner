@@ -159,13 +159,14 @@ function handlePost($db, $currentUser) {
     
     // Insert user
     $db->query(
-        "INSERT INTO users (email, first_name, last_name, type, is_active, created_at, updated_at)
-         VALUES (?, ?, ?, ?, 1, NOW(), NOW())",
+        "INSERT INTO users (email, first_name, last_name, type, netsuite_id, is_active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())",
         [
             $data['email'],
             $data['first_name'] ?? null,
             $data['last_name'] ?? null,
-            $data['type']
+            $data['type'],
+            $data['netsuite_id'] ?? null
         ]
     );
     
@@ -269,6 +270,11 @@ function handlePut($db, $currentUser) {
         $params[] = $data['is_active'] ? 1 : 0;
     }
     
+    if (isset($data['netsuite_id'])) {
+        $updates[] = "netsuite_id = ?";
+        $params[] = $data['netsuite_id'] ?: null;
+    }
+    
     if (empty($updates)) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'No fields to update']);
@@ -293,7 +299,7 @@ function handlePut($db, $currentUser) {
             'update_user',
             json_encode([
                 'updated_user_id' => $data['id'],
-                'changes' => array_intersect_key($data, array_flip(['email', 'first_name', 'last_name', 'type', 'is_active']))
+                'changes' => array_intersect_key($data, array_flip(['email', 'first_name', 'last_name', 'type', 'is_active', 'netsuite_id']))
             ]),
             $_SERVER['REMOTE_ADDR']
         ]

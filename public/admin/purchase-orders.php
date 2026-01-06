@@ -122,6 +122,7 @@ include __DIR__ . '/../includes/header.php';
                     <tr>
                         <th>PO Number</th>
                         <th>Vendor</th>
+                        <th>Assigned To</th>
                         <th>Amount</th>
                         <th>Status</th>
                         <th>Created Date</th>
@@ -247,6 +248,9 @@ function displayPOs(pos) {
             </td>
             <td>
                 ${htmlEscape(po.vendor_name)}
+            </td>
+            <td>
+                <small>${po.assigned_user_name ? htmlEscape(po.assigned_user_name) : '<em class="text-muted">Unassigned User</em>'}</small>
             </td>
             <td>
                 ${po.currency} ${formatCurrency(po.total_amount)}

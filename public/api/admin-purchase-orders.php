@@ -70,24 +70,38 @@ function listPurchaseOrders($db, $user) {
     
     $offset = ($page - 1) * $limit;
     
-    $baseQuery = "FROM purchase_orders WHERE 1=1";
+    $whereClause = "1=1";
     
     if ($user['role'] !== 'admin') {
-        $baseQuery .= " AND buyer_id = " . intval($user['id']);
+        $whereClause .= " AND po.buyer_id = " . intval($user['id']);
     }
     
-    $total = $db->fetchOne("SELECT COUNT(*) as count " . $baseQuery);
+    $total = $db->fetchOne("SELECT COUNT(*) as count FROM purchase_orders po WHERE " . $whereClause);
     $total_count = $total['count'];
     
     $pos = $db->fetchAll(
-        "SELECT id, tran_id, vendor_name, total_amount, currency, status, created_date, due_date, rejection_reason " .
-        $baseQuery .
-        " ORDER BY created_date DESC LIMIT ? OFFSET ?",
+        "SELECT 
+            po.id, 
+            po.tran_id, 
+            po.vendor_name, 
+            po.total_amount, 
+            po.currency, 
+            po.status, 
+            po.created_date, 
+            po.due_date, 
+            po.rejection_reason,
+            po.buyer_id,
+            CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as assigned_user_name
+         FROM purchase_orders po
+         LEFT JOIN users u ON po.buyer_id = u.id 
+         WHERE " . $whereClause .
+        " ORDER BY po.created_date DESC LIMIT ? OFFSET ?",
         [$limit, $offset]
     );
     
     foreach ($pos as &$po) {
         $po['status_description'] = getStatusDescription($po['status']);
+        $po['assigned_user_name'] = trim($po['assigned_user_name']) ?: 'Unassigned User';
     }
     
     echo json_encode([
@@ -157,14 +171,28 @@ function searchPurchaseOrders($db, $user) {
     $total_count = $total['count'];
     
     $pos = $db->fetchAll(
-        "SELECT id, tran_id, vendor_name, total_amount, currency, status, created_date, due_date, rejection_reason " .
-        "FROM purchase_orders WHERE " . $whereClause .
-        " ORDER BY created_date DESC LIMIT ? OFFSET ?",
+        "SELECT 
+            po.id, 
+            po.tran_id, 
+            po.vendor_name, 
+            po.total_amount, 
+            po.currency, 
+            po.status, 
+            po.created_date, 
+            po.due_date, 
+            po.rejection_reason,
+            po.buyer_id,
+            CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as assigned_user_name
+         FROM purchase_orders po
+         LEFT JOIN users u ON po.buyer_id = u.id " .
+        "WHERE " . $whereClause .
+        " ORDER BY po.created_date DESC LIMIT ? OFFSET ?",
         array_merge($params, [$limit, $offset])
     );
     
     foreach ($pos as &$po) {
         $po['status_description'] = getStatusDescription($po['status']);
+        $po['assigned_user_name'] = trim($po['assigned_user_name']) ?: 'Unassigned User';
     }
     
     echo json_encode([

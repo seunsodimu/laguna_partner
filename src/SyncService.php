@@ -193,10 +193,15 @@ class SyncService {
                 $userId = $this->db->insert('users', [
                     'email' => $email,
                     'type' => 'vendor',
+                    'netsuite_id' => $vendor['id'],
                     'is_active' => 1
                 ]);
             } else {
                 $userId = $user['id'];
+                // Update netsuite_id if not set
+                if (!$user['netsuite_id']) {
+                    $this->db->update('users', ['netsuite_id' => $vendor['id']], 'id = ?', [$userId]);
+                }
             }
 
             // Link user to account
@@ -295,10 +300,15 @@ class SyncService {
                 $userId = $this->db->insert('users', [
                     'email' => $email,
                     'type' => 'dealer',
+                    'netsuite_id' => $dealer['id'],
                     'is_active' => 1
                 ]);
             } else {
                 $userId = $user['id'];
+                // Update netsuite_id if not set
+                if (!$user['netsuite_id']) {
+                    $this->db->update('users', ['netsuite_id' => $dealer['id']], 'id = ?', [$userId]);
+                }
             }
 
             // Link user to account
@@ -388,9 +398,16 @@ class SyncService {
             foreach ($purchaseOrders as $po) {
                 try {
                     // Check if vendor has portal access
-                    $vendorId = $po['entity']['id'] ?? null;
-                    if (!$vendorId || !$this->vendorHasPortalAccess($vendorId)) {
+                    $vendorId = $po['entity'] ?? null;
+                    if (!$vendorId) {
                         $stats['vendor_not_in_portal']++;
+                        error_log("PO {$po['id']}: No vendor ID found in PO data");
+                        continue;
+                    }
+                    
+                    if (!$this->vendorHasPortalAccess($vendorId)) {
+                        $stats['vendor_not_in_portal']++;
+                        error_log("PO {$po['id']}: Vendor {$vendorId} does not have portal access");
                         continue;
                     }
 
@@ -409,7 +426,7 @@ class SyncService {
 
                 } catch (\Exception $e) {
                     $stats['failed']++;
-                    error_log("Failed to sync PO {$po['id']}: " . $e->getMessage());
+                    error_log("Failed to sync PO {$po['id']}: " . $e->getMessage() . "\nStack: " . $e->getTraceAsString());
                 }
                 
                 // Commit every 10 records to avoid long transactions
@@ -488,14 +505,46 @@ class SyncService {
             [$poDetails['id']]
         );
 
+        // Safely extract nested values
+        // Extract assigned user (sales rep) - populate buyer_id with the sales rep's user ID
+        $buyer_id = null;
+        $salesRepId = null;
+        if (isset($poDetails['custbody_sales_rep']) && is_array($poDetails['custbody_sales_rep'])) {
+            $salesRepId = $poDetails['custbody_sales_rep']['id'] ?? null;
+        } elseif (isset($poDetails['custbody_sales_rep']) && is_numeric($poDetails['custbody_sales_rep'])) {
+            $salesRepId = $poDetails['custbody_sales_rep'];
+        }
+
+        // Look up user by netsuite_id and set buyer_id
+        if ($salesRepId) {
+            $user = $this->db->fetchOne(
+                "SELECT id FROM users WHERE netsuite_id = ?",
+                [$salesRepId]
+            );
+            if ($user) {
+                $buyer_id = $user['id'];
+            }
+        }
+
+        $status = $poDetails['orderStatus']['id'] ?? $poDetails['status'] ?? '';
+        $location = null;
+        if (isset($poDetails['location']) && is_array($poDetails['location'])) {
+            $location = $poDetails['location']['refName'] ?? null;
+        }
+
+        $department = null;
+        if (isset($poDetails['department']) && is_array($poDetails['department'])) {
+            $department = $poDetails['department']['refName'] ?? null;
+        }
+
         $poData = [
             'id' => $poDetails['id'],
             'tran_id' => $poDetails['tranId'] ?? $poDetails['id'],
             'vendor_id' => $poDetails['entity']['id'] ?? null,
             'vendor_name' => $poDetails['entity']['refName'] ?? '',
-            'buyer_id' => $poDetails['custbody_lt_next_approver']['id'] ?? null,
-            'status' => $poDetails['orderStatus']['id'] ?? $poDetails['status'] ?? '',
-            'status_text' => $this->getStatusText($poDetails['orderStatus']['id'] ?? $poDetails['status'] ?? ''),
+            'buyer_id' => $buyer_id,
+            'status' => $status,
+            'status_text' => $this->getStatusText($status),
             'total_amount' => $poDetails['total'] ?? 0,
             'currency' => $poDetails['currency']['refName'] ?? 'USD',
             'created_date' => isset($poDetails['createdDate']) ? date('Y-m-d', strtotime($poDetails['createdDate'])) : null,
@@ -503,22 +552,30 @@ class SyncService {
             'port_date' => $poDetails['custbody_port_date'] ?? null,
             'estimated_delivery_date' => $poDetails['custcol_est_delivery_date'] ?? null,
             'ship_date' => $poDetails['shipDate'] ?? null,
-            'location' => $poDetails['location']['refName'] ?? null,
-            'department' => $poDetails['department']['refName'] ?? null,
+            'location' => $location,
+            'department' => $department,
             'is_synced_to_netsuite' => 1,
             'netsuite_data' => json_encode($poDetails)
         ];
 
         if ($existing) {
-            // unset($poData['id']);
-            // $this->db->update('purchase_orders', $poData, 'id = ?', [$poDetails['id']]);
+            $updateData = $poData;
+            unset($updateData['id']);
+            $this->db->update('purchase_orders', $updateData, 'id = ?', [$poDetails['id']]);
         } else {
             $this->db->insert('purchase_orders', $poData);
         }
 
         // Sync PO items
-        if (isset($poDetails['item']['items'])) {
-            $this->syncPOItems($poDetails['id'], $poDetails['item']['items']);
+        $items = [];
+        if (isset($poDetails['item']) && is_array($poDetails['item'])) {
+            if (isset($poDetails['item']['items']) && is_array($poDetails['item']['items'])) {
+                $items = $poDetails['item']['items'];
+            }
+        }
+        
+        if (!empty($items)) {
+            $this->syncPOItems($poDetails['id'], $items);
         }
     }
 
@@ -702,18 +759,33 @@ class SyncService {
     }
 
     /**
-     * Check if vendor has portal access
+     * Check if vendor exists and can have POs synced
+     * Returns true if vendor exists in accounts or users table (regardless of active status)
      */
     private function vendorHasPortalAccess($vendorId) {
         if (!$vendorId) {
             return false;
         }
 
+        // Cast to int to handle string IDs from API
+        $vendorId = (int)$vendorId;
+
+        // Check if vendor exists in accounts table (any status)
         $vendor = $this->db->fetchOne(
-            "SELECT id FROM accounts WHERE id = ? AND type = 'vendor' AND is_active = 1",
+            "SELECT id FROM accounts WHERE id = ? AND type = 'vendor'",
             [$vendorId]
         );
 
-        return $vendor !== null;
+        if ($vendor !== null) {
+            return true;
+        }
+
+        // Check if vendor exists in users table via netsuite_id (any status)
+        $user = $this->db->fetchOne(
+            "SELECT id FROM users WHERE netsuite_id = ? AND type = 'vendor'",
+            [$vendorId]
+        );
+
+        return $user !== null;
     }
 }

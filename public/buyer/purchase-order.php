@@ -37,7 +37,15 @@ if (!$po_id) {
     exit;
 }
 
-$po = $db->fetchOne("SELECT * FROM purchase_orders WHERE id = ?", [$po_id]);
+$po = $db->fetchOne(
+    "SELECT po.*, 
+            CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as buyer_name,
+            u.email as buyer_email
+     FROM purchase_orders po
+     LEFT JOIN users u ON po.buyer_id = u.id
+     WHERE po.id = ?",
+    [$po_id]
+);
 if (!$po) {
     header('Location: ' . BASE_PATH . '/buyer/dashboard.php');
     exit;

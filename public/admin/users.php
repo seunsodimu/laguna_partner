@@ -229,6 +229,10 @@ include __DIR__ . '/../includes/header.php';
                             <option value="dealer">Dealer</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">NetSuite ID</label>
+                        <input type="number" class="form-control" name="netsuite_id" placeholder="NetSuite ID (optional)">
+                    </div>
                     <div class="alert alert-info">
                         <small><i class="bi bi-info-circle"></i> User will receive an OTP to their email for login.</small>
                     </div>
@@ -348,6 +352,10 @@ function editUser(userId) {
                             <option value="buyer" ${user.role === 'buyer' ? 'selected' : ''}>Buyer</option>
                             <option value="accounting" ${user.role === 'accounting' ? 'selected' : ''}>Accounting</option>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">NetSuite ID</label>
+                        <input type="number" class="form-control" name="netsuite_id" value="${escapeHtml(user.netsuite_id || '')}">
                     </div>
                 </form>
                 <div class="modal-footer">
