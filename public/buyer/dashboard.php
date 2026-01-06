@@ -250,6 +250,7 @@ function displayPurchaseOrders(pos) {
     
     tbody.innerHTML = pos.map(po => {
         const statusMap = {
+            'A': { text: 'Pending Approval', class: 'warning' },
             'B': { text: 'Pending Received', class: 'warning' },
             'E': { text: 'Partially Received', class: 'info' },
             'F': { text: 'Pending Bill', class: 'primary' },

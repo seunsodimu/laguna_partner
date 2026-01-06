@@ -217,6 +217,7 @@ include __DIR__ . '/../includes/header.php';
                 <span class="detail-value">
                     <?php
                     $statusMap = [
+                        'A' => [ 'text'=>'Pending Approval', 'class' => 'warning' ],
                         'B' => ['text' => 'Pending Received', 'class' => 'warning'],
                         'E' => ['text' => 'Partially Received', 'class' => 'info'],
                         'F' => ['text' => 'Pending Bill', 'class' => 'primary'],
