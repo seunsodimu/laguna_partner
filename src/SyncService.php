@@ -376,7 +376,7 @@ class SyncService {
             $this->db->beginTransaction();
 
             $purchaseOrders = $this->netsuite->getPurchaseOrders();
-            $stats = ['processed' => 0, 'created' => 0, 'updated' => 0, 'failed' => 0, 'skipped' => 0];
+            $stats = ['processed' => 0, 'created' => 0, 'updated' => 0, 'failed' => 0, 'skipped' => 0, 'vendor_not_in_portal' => 0];
             
             $totalPOs = count($purchaseOrders);
             $stats['total_available'] = $totalPOs;
@@ -386,9 +386,16 @@ class SyncService {
             $stats['skipped'] = max(0, $totalPOs - $limit);
 
             foreach ($purchaseOrders as $po) {
-                $stats['processed']++;
-
                 try {
+                    // Check if vendor has portal access
+                    $vendorId = $po['entity']['id'] ?? null;
+                    if (!$vendorId || !$this->vendorHasPortalAccess($vendorId)) {
+                        $stats['vendor_not_in_portal']++;
+                        continue;
+                    }
+
+                    $stats['processed']++;
+
                     // Get full PO details
                     $poDetails = $this->netsuite->getPurchaseOrder($po['id']);
                     $this->syncPurchaseOrder($poDetails);
@@ -446,6 +453,11 @@ class SyncService {
             $poDetails = $this->netsuite->getPurchaseOrder($poId);
             if (!$poDetails) {
                 throw new \Exception('Purchase order not found in NetSuite');
+            }
+
+            $vendorId = $poDetails['entity']['id'] ?? null;
+            if (!$vendorId || !$this->vendorHasPortalAccess($vendorId)) {
+                throw new \Exception("Vendor {$vendorId} does not have portal access. Purchase order sync skipped.");
             }
 
             $this->syncPurchaseOrder($poDetails);
@@ -687,5 +699,21 @@ class SyncService {
         ];
 
         return $statuses[$status] ?? $status;
+    }
+
+    /**
+     * Check if vendor has portal access
+     */
+    private function vendorHasPortalAccess($vendorId) {
+        if (!$vendorId) {
+            return false;
+        }
+
+        $vendor = $this->db->fetchOne(
+            "SELECT id FROM accounts WHERE id = ? AND type = 'vendor' AND is_active = 1",
+            [$vendorId]
+        );
+
+        return $vendor !== null;
     }
 }
