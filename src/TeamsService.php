@@ -172,6 +172,72 @@ class TeamsService {
     /**
      * Send notification to Teams for PO rejection
      */
+    public function sendPOAcceptance($poData) {
+        $webhookUrl = $this->getWebhookUrl('po_vendor_update');
+        
+        if (!$webhookUrl) {
+            $this->log("No webhook URL configured for 'po_vendor_update' notification type");
+            return false;
+        }
+
+        try {
+            $message = $this->buildPOAcceptanceMessage($poData);
+            return $this->sendToTeams($webhookUrl, $message, 'po_acceptance');
+        } catch (\Exception $e) {
+            $this->log("Error sending PO acceptance notification: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Build Teams message for PO acceptance
+     */
+    private function buildPOAcceptanceMessage($poData) {
+        return [
+            '@type' => 'MessageCard',
+            '@context' => 'https://schema.org/extensions',
+            'summary' => "PO Accepted by Vendor",
+            'themeColor' => '107C10',
+            'sections' => [
+                [
+                    'activityTitle' => "Purchase Order Accepted",
+                    'activitySubtitle' => "Vendor: {$poData['vendor_name']}",
+                    'facts' => [
+                        [
+                            'name' => 'PO Number:',
+                            'value' => $poData['tran_id'] ?? $poData['tranid'] ?? 'N/A'
+                        ],
+                        [
+                            'name' => 'Vendor:',
+                            'value' => $poData['vendor_name']
+                        ],
+                        [
+                            'name' => 'Total Amount:',
+                            'value' => '$' . number_format($poData['total_amount'] ?? 0, 2)
+                        ],
+                        [
+                            'name' => 'Accepted At:',
+                            'value' => date('m/d/Y H:i:s')
+                        ]
+                    ],
+                    'markdown' => true
+                ]
+            ],
+            'potentialAction' => [
+                [
+                    '@type' => 'OpenUri',
+                    'name' => 'View PO',
+                    'targets' => [
+                        [
+                            'os' => 'default',
+                            'uri' => $this->getPortalLink('po', $poData['id'] ?? 0)
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+
     public function sendPORejection($poData, $rejectionReason) {
         $webhookUrl = $this->getWebhookUrl('po_vendor_update');
         

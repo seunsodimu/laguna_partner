@@ -521,6 +521,31 @@ class EmailService {
     }
 
     /**
+     * Send PO acceptance notification to buyer
+     */
+    public function sendPOAcceptance($buyerEmail, $poData) {
+        try {
+            $template = $this->getTemplate('po_acceptance');
+            
+            $variables = [
+                'po_number' => $poData['tran_id'] ?? $poData['tranid'] ?? 'N/A',
+                'vendor_name' => $poData['vendor_name'],
+                'total_amount' => '$' . number_format($poData['total_amount'] ?? 0, 2),
+                'accepted_date' => date('m/d/Y H:i:s'),
+                'portal_link' => $this->getPortalLink('po', $poData['id'])
+            ];
+
+            $subject = $this->replaceVariables($template['subject'], $variables);
+            $body = $this->replaceVariables($template['body'], $variables);
+
+            return $this->send($buyerEmail, $subject, $body);
+        } catch (\Exception $e) {
+            $this->log("Error sending PO acceptance email to $buyerEmail: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Send PO rejection notification to buyer
      */
     public function sendPORejection($buyerEmail, $poData, $rejectionReason) {

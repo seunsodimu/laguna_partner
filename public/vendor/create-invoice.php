@@ -577,7 +577,7 @@ include __DIR__ . '/../includes/header.php';
                     <td>${quantity}</td>
                     <td>
                         <div class="input-group input-group-sm" style="max-width: 120px;">
-                            <input type="number" class="form-control item-qty-billed" data-po-id="${poId}" data-item-id="${item.id}" min="0" max="${quantity}" step="1" value="0" placeholder="0">
+                            <input type="number" class="form-control item-qty-billed" data-po-id="${poId}" data-item-id="${item.id}" min="0" max="${quantity}" step="0.1" value="0" placeholder="0">
                         </div>
                     </td>
                     <td data-total-billed="${item.id}">$0.00</td>

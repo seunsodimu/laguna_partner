@@ -557,14 +557,16 @@ function addComment(poId) {
 }
 
 function formatDate(dateStr) {
-    if (!dateStr) return 'N/A';
+    if (!dateStr || dateStr === '0000-00-00' || dateStr === '1970-01-01') return '-';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString();
 }
 
 function formatDateTime(dateStr) {
-    if (!dateStr) return 'N/A';
+    if (!dateStr || dateStr === '0000-00-00' || dateStr === '1970-01-01') return '-';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '-';
     return date.toLocaleString();
 }
 

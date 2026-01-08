@@ -218,6 +218,9 @@ function handlePost($db, $userType, $userId) {
         case 'reject_po':
             rejectPO($db, $userType, $userId, $data);
             break;
+        case 'accept_po':
+            acceptPO($db, $userType, $userId, $data);
+            break;
         default:
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -688,5 +691,87 @@ function rejectPO($db, $userType, $userId, $data) {
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Failed to reject PO: ' . $e->getMessage()]);
+    }
+}
+
+function acceptPO($db, $userType, $userId, $data) {
+    if ($userType !== 'vendor') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Only vendors can accept POs']);
+        return;
+    }
+    
+    $poId = $data['po_id'] ?? null;
+    
+    if (!$poId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'PO ID required']);
+        return;
+    }
+    
+    // Verify vendor access
+    $po = $db->fetchOne(
+        "SELECT po.*, a.company_name as vendor_name, a.email as vendor_email,
+                CONCAT(u.first_name, ' ', u.last_name) as buyer_name, u.email as buyer_email
+         FROM purchase_orders po
+         LEFT JOIN accounts a ON po.vendor_id = a.id
+         LEFT JOIN users u ON po.buyer_id = u.id
+         WHERE po.id = ?",
+        [$poId]
+    );
+    
+    if (!$po) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Purchase order not found']);
+        return;
+    }
+    
+    $accountId = $_SESSION['active_account_id'] ?? null;
+    if ($po['vendor_id'] != $accountId) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Access denied']);
+        return;
+    }
+    
+    if ($po['vendor_accepted']) {
+        echo json_encode(['success' => false, 'message' => 'This PO has already been accepted']);
+        return;
+    }
+    
+    try {
+        // Update PO to mark as accepted
+        $db->query(
+            "UPDATE purchase_orders 
+             SET vendor_accepted = 1, vendor_accepted_at = NOW(), updated_at = NOW()
+             WHERE id = ?",
+            [$poId]
+        );
+        
+        // Log activity
+        Auth::logActivity($userId, 'accept_po', "Accepted PO #{$po['tran_id']}", [
+            'po_id' => $poId
+        ]);
+        
+        // Send email notification to buyer
+        $emailService = new EmailService();
+        if ($po['buyer_email']) {
+            $emailService->sendPOAcceptance(
+                $po['buyer_email'],
+                $po
+            );
+        }
+        
+        // Send Teams notification
+        try {
+            $teamsService = new TeamsService();
+            $teamsService->sendPOAcceptance($po);
+        } catch (\Exception $e) {
+            error_log("Failed to send Teams notification for PO acceptance: " . $e->getMessage());
+        }
+        
+        echo json_encode(['success' => true, 'message' => 'Purchase order accepted successfully']);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Failed to accept PO: ' . $e->getMessage()]);
     }
 }

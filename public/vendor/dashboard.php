@@ -182,7 +182,12 @@ include __DIR__ . '/../includes/header.php';
                                         <button class="btn btn-sm btn-primary" onclick="viewPO(<?= $po['id'] ?>)">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-success" onclick="uploadDoc(<?= $po['id'] ?>)">
+                                        <?php if (!($po['vendor_accepted'] ?? false)): ?>
+                                            <button class="btn btn-sm btn-success" onclick="acceptPO(<?= $po['id'] ?>)">
+                                                <i class="bi bi-check-circle"></i> Accept
+                                            </button>
+                                        <?php endif; ?>
+                                        <button class="btn btn-sm btn-info" onclick="uploadDoc(<?= $po['id'] ?>)">
                                             <i class="bi bi-upload"></i>
                                         </button>
                                         <a class="btn btn-sm btn-warning mt-1" href="<?= BASE_PATH ?>/vendor/create-invoice.php?po_id=<?= $po['id'] ?>">
@@ -279,7 +284,7 @@ function displayPODetails(po) {
         'H': 'Fully Billed'
     };
     
-    const canEdit = ['B', 'E'].includes(po.status);
+    const canEdit = ['B', 'E'].includes(po.status) && (po.vendor_accepted ?? false);
     
     let html = `
         <div class="row mb-4">
@@ -294,7 +299,8 @@ function displayPODetails(po) {
             </div>
             <div class="col-md-6 text-end">
                 <h4>$${parseFloat(po.total_amount || 0).toFixed(2)}</h4>
-                ${!canEdit ? '<p class="text-muted"><small>Dates can only be edited when status is Pending/Partially Received</small></p>' : ''}
+                ${!(po.vendor_accepted ?? false) ? '<p class="alert alert-warning mb-0"><small><i class="bi bi-exclamation-circle"></i> You must accept this PO before making any changes</small></p>' : ''}
+                ${(po.vendor_accepted ?? false) && !canEdit ? '<p class="text-muted"><small>Dates can only be edited when status is Pending/Partially Received</small></p>' : ''}
             </div>
         </div>
         
@@ -329,10 +335,13 @@ function displayPODetails(po) {
         </div>
         
         <div class="mb-3">
+            ${!(po.vendor_accepted ?? false) ? `<button class="btn btn-success" onclick="submitAcceptance(${po.id})">
+                <i class="bi bi-check-circle"></i> Accept PO
+            </button>` : ''}
             ${canEdit ? `<button class="btn btn-primary" onclick="savePOChanges(${po.id})">
                 <i class="bi bi-save"></i> Submit Changes
             </button>` : ''}
-            ${canEdit ? `<button class="btn btn-danger" onclick="showRejectModal(${po.id})">
+            ${!(po.vendor_accepted ?? false) ? `<button class="btn btn-danger" onclick="showRejectModal(${po.id})">
                 <i class="bi bi-x-circle"></i> Reject PO
             </button>` : ''}
         </div>
@@ -635,6 +644,63 @@ function uploadDocument(poId) {
     });
 }
 
+function submitAcceptance(poId) {
+    if (!confirm('Are you sure you want to accept this PO? Once accepted, you will be able to provide shipping details and other information.')) {
+        return;
+    }
+    
+    fetch(`${BASE_PATH}/api/purchase-orders.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'accept_po',
+            po_id: poId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            poModal.hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Error: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to accept PO', 'error');
+    });
+}
+
+function acceptPO(poId) {
+    if (!confirm('Are you sure you want to accept this PO? Once accepted, you will be able to provide shipping details and other information.')) {
+        return;
+    }
+    
+    fetch(`${BASE_PATH}/api/purchase-orders.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'accept_po',
+            po_id: poId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Error: ' + data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to accept PO', 'error');
+    });
+}
+
 function showRejectModal(poId) {
     currentRejectPoId = poId;
     document.getElementById('rejectionReason').value = '';
@@ -688,14 +754,16 @@ function uploadDoc(poId) {
 }
 
 function formatDate(dateStr) {
-    if (!dateStr) return 'N/A';
+    if (!dateStr || dateStr === '0000-00-00' || dateStr === '1970-01-01') return '-';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString();
 }
 
 function formatDateTime(dateStr) {
-    if (!dateStr) return 'N/A';
+    if (!dateStr || dateStr === '0000-00-00' || dateStr === '1970-01-01') return '-';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '-';
     return date.toLocaleString();
 }
 

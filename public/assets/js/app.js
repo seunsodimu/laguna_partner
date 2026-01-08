@@ -71,7 +71,9 @@ function formatCurrency(amount) {
 
 // Format date
 function formatDate(dateString) {
+    if (!dateString || dateString === '0000-00-00' || dateString === '1970-01-01') return '-';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
     return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
         month: '2-digit',

@@ -182,8 +182,9 @@ function escapeHtml(text) {
 }
 
 function formatDate(dateString) {
-    if (!dateString) return 'N/A';
+    if (!dateString || dateString === '0000-00-00' || dateString === '1970-01-01') return '-';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
