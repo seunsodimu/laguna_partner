@@ -471,6 +471,8 @@ class SyncService {
             if (!$poDetails) {
                 throw new \Exception('Purchase order not found in NetSuite');
             }
+            
+            error_log("PO Details fetched from NetSuite for ID {$poId}: " . json_encode($poDetails));
 
             $vendorId = $poDetails['entity']['id'] ?? null;
             if (!$vendorId || !$this->vendorHasPortalAccess($vendorId)) {

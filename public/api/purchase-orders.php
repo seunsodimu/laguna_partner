@@ -464,6 +464,7 @@ function approveChanges($db, $userType, $userId, $data) {
         if ($po['estimated_delivery_date']) $updateData['custbodyus_delivery_date'] = $po['estimated_delivery_date'];
         if ($po['ship_date']) $updateData['custbodyvessel_ship_date'] = $po['ship_date'];
         
+        error_log("PO Update Payload for ID {$po['id']}: " . json_encode($updateData));
         $nsClient->updateRecord('purchaseOrder', $po['id'], $updateData);
         
         // Sync all comments from this PO to NetSuite
@@ -489,6 +490,7 @@ function approveChanges($db, $userType, $userId, $data) {
                 'primaryRecipient' => $po['buyer_id'],
                 'recipient' => $po['buyer_id']
             ];
+            error_log("Message Payload for PO {$po['id']}: " . json_encode($messageData));
             $nsClient->createRecord('message', $messageData);
         }
         
@@ -506,6 +508,7 @@ function approveChanges($db, $userType, $userId, $data) {
                 'primaryRecipient' => $po['buyer_id'],
                 'recipient' => $po['buyer_id']
             ];
+            error_log("Approval Message Payload for PO {$po['id']}: " . json_encode($messageData));
             $nsClient->createRecord('message', $messageData);
         }
         

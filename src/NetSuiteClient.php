@@ -172,6 +172,13 @@ class NetSuiteClient {
         // Allow disabling SSL verification for local development
         $verifySSL = (getenv('NETSUITE_VERIFY_SSL') ?: 'true') === 'true';
 
+        // Log request payload for debugging
+        if ($data !== null) {
+            error_log("NetSuite Request: $method $url | Payload: " . json_encode($data));
+        } else {
+            error_log("NetSuite Request: $method $url");
+        }
+
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
@@ -197,9 +204,11 @@ class NetSuiteClient {
 
         if ($httpCode >= 400) {
             $errorMsg = "NetSuite API Error (HTTP $httpCode): " . $response;
-            error_log("NetSuite API Error (HTTP $httpCode) | Account: {$this->accountId}, URL: {$this->baseUrl}, Env: {$this->environment}: " . $response);
+            error_log("NetSuite API Error (HTTP $httpCode) | Account: {$this->accountId}, URL: {$this->baseUrl}, Env: {$this->environment} | Request Payload: " . ($data !== null ? json_encode($data) : 'None') . " | Response: " . $response);
             throw new \Exception($errorMsg);
         }
+        
+        error_log("NetSuite Response (HTTP $httpCode): " . substr($response, 0, 500));
 
         return json_decode($response, true);
     }
