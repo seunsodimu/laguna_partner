@@ -25,8 +25,11 @@ if (!class_exists('Dotenv\Dotenv')) {
     require_once '../../vendor/autoload.php';
 }
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenvPath = __DIR__ . '/../..';
+$dotenv = Dotenv\Dotenv::createImmutable($dotenvPath);
+error_log("Loading .env from: " . $dotenvPath . " | Current working directory: " . getcwd() . " | .env exists: " . (file_exists($dotenvPath . '/.env') ? 'YES' : 'NO'));
 $dotenv->load();
+error_log("After dotenv load - NETSUITE_ENVIRONMENT: " . ($_ENV['NETSUITE_ENVIRONMENT'] ?? 'NOT_SET'));
 
 header('Content-Type: application/json');
 
@@ -1520,10 +1523,16 @@ function syncInvoiceToNetSuite($db, $invoiceId, $departmentId, $locationId, $pos
     } catch (Exception $e) {
         $env = strtoupper($_ENV['NETSUITE_ENVIRONMENT'] ?? 'SANDBOX');
         $account_key = 'NETSUITE_' . $env . '_ACCOUNT_ID';
+        $key_key = 'NETSUITE_' . $env . '_CONSUMER_KEY';
         $base_url_key = 'NETSUITE_' . $env . '_BASE_URL';
-        $accountId = $_ENV[$account_key] ?? 'Unknown';
-        $baseUrl = $_ENV[$base_url_key] ?? 'Unknown';
-        error_log("Failed to sync invoice $invoiceId to NetSuite (Account: $accountId, URL: $baseUrl, Env: $env): " . $e->getMessage());
+        $accountId = $_ENV[$account_key] ?? 'NOT_SET';
+        $baseUrl = $_ENV[$base_url_key] ?? 'NOT_SET';
+        
+        $envVarsStatus = "Expected Keys: [$account_key, $key_key, $base_url_key] | ";
+        $envVarsStatus .= "Account Key ($account_key): " . (isset($_ENV[$account_key]) ? 'SET' : 'NOT_SET') . " | ";
+        $envVarsStatus .= "Key Key ($key_key): " . (isset($_ENV[$key_key]) ? 'SET' : 'NOT_SET') . " | ";
+        
+        error_log("Failed to sync invoice $invoiceId to NetSuite (Account: $accountId, URL: $baseUrl, Env: $env, Status: $envVarsStatus): " . $e->getMessage());
         throw $e;
     }
 }
@@ -1537,7 +1546,13 @@ function createVendorBillInNetSuite($payload) {
     $token_key = 'NETSUITE_' . $env . '_TOKEN_ID';
     $token_secret_key = 'NETSUITE_' . $env . '_TOKEN_SECRET';
     
+    // Log all NETSUITE_* environment variables for debugging
+    $netsuitEnvVars = array_filter($_ENV, function($key) { return strpos($key, 'NETSUITE_') === 0; }, ARRAY_FILTER_USE_KEY);
+    error_log("Invoice Sync - Environment variables loaded: " . json_encode(array_keys($netsuitEnvVars)));
+    error_log("Invoice Sync - Looking for credentials | Env: $env | Account Key: $account_key | Key Key: $key_key | Account Set: " . (isset($_ENV[$account_key]) ? 'YES' : 'NO') . " | Key Set: " . (isset($_ENV[$key_key]) ? 'YES' : 'NO'));
+    
     if (!isset($_ENV[$account_key]) || !isset($_ENV[$key_key])) {
+        error_log("Invoice Sync Failed - Credentials not found for environment: $env | Expected keys: [$account_key, $key_key, $secret_key, $token_key, $token_secret_key] | Available keys: " . json_encode(array_keys($netsuitEnvVars)));
         throw new Exception('NetSuite credentials not configured for environment: ' . strtolower($env));
     }
 
