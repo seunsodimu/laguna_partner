@@ -489,7 +489,7 @@ function approveChanges($db, $userType, $userId, $data) {
                 'transaction' => $po['id'],
                 'primaryRecipient' => $po['buyer_id'],
                 'recipient' => $po['buyer_id'],
-                'email' =>'noreply@lagunatools.com'
+                'to' =>'noreply@lagunatools.com'
             ];
             error_log(message: "Message Payload for PO {$po['id']}: " . json_encode($messageData));
             $nsClient->createRecord('message', $messageData);
