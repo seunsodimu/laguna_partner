@@ -141,9 +141,9 @@ include __DIR__ . '/../includes/header.php';
                             <th>Total Amount</th>
                             <th>Status</th>
                             <th>Created Date</th>
-                            <th>Port Date</th>
-                            <th>Est. Delivery</th>
-                            <th>Ship Date</th>
+                            <th>Vessel Onboard Date</th>
+                            <th>US Delivery Date</th>
+                            <th>VesselShip Date</th>
                             <th>Items</th>
                             <th>Actions</th>
                         </tr>

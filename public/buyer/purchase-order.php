@@ -271,15 +271,15 @@ include __DIR__ . '/../includes/header.php';
             
             <div class="row g-3 mt-3">
                 <div class="col-md-4">
-                    <label class="form-label"><strong>Port Date</strong></label>
+                    <label class="form-label"><strong>Vessel Onboard Date<span class="field-info">(Date items boards ship)</span></strong></label>
                     <input type="date" class="form-control" id="editPortDate" value="<?php echo htmlspecialchars($po['port_date'] ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label"><strong>Est. Delivery Date</strong></label>
+                    <label class="form-label"><strong>US Delivery Date<span class="field-info">(Date items arrive at destination)</span></strong></label>
                     <input type="date" class="form-control" id="editEstDelivery" value="<?php echo htmlspecialchars($po['estimated_delivery_date'] ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label"><strong>Ship Date</strong></label>
+                    <label class="form-label"><strong>Vessel Ship Date<span class="field-info">(Date ship departs origin)</span></strong></label>
                     <input type="date" class="form-control" id="editShipDate" value="<?php echo htmlspecialchars($po['ship_date'] ?? ''); ?>">
                 </div>
             </div>

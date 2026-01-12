@@ -143,9 +143,9 @@ include __DIR__ . '/../includes/header.php';
                             <th>Total Amount</th>
                             <th>Status</th>
                             <th>Created Date</th>
-                            <th>Port Date</th>
-                            <th>Est. Delivery</th>
-                            <th>Ship Date</th>
+                            <th>Vessel Onboard Date</th>
+                            <th>US Delivery Date</th>
+                            <th>VesselShip Date</th>
                             <th>Items</th>
                             <th>Buyer</th>
                             <th>Updates</th>
@@ -346,15 +346,15 @@ function displayPODetails(po) {
         
         <div class="row mb-4">
             <div class="col-md-4">
-                <label class="form-label"><strong>Port Date</strong></label>
+                <label class="form-label"><strong>Vessel Onboard Date Date</strong></label>
                 <input type="date" class="form-control" id="editPortDate" value="${po.port_date || ''}">
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>Est. Delivery Date</strong></label>
+                <label class="form-label"><strong>US Delivery Date</strong></label>
                 <input type="date" class="form-control" id="editEstDelivery" value="${po.estimated_delivery_date || ''}">
             </div>
             <div class="col-md-4">
-                <label class="form-label"><strong>Ship Date</strong></label>
+                <label class="form-label"><strong>Vessel Ship Date</strong></label>
                 <input type="date" class="form-control" id="editShipDate" value="${po.ship_date || ''}">
             </div>
         </div>
