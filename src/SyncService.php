@@ -122,7 +122,7 @@ class SyncService {
 
             } catch (\Exception $e) {
                 $stats['failed']++;
-                error_log("Failed to sync vendor {$vendor['id']}: " . $e->getMessage());
+                error_log("Failed to sync vendor {$vendor['id']} (Account: {$this->netsuite->getAccountId()}, URL: {$this->netsuite->getBaseUrl()}): " . $e->getMessage());
             }
         }
 
@@ -153,7 +153,7 @@ class SyncService {
                 $this->db->insert('vendor_profiles', $profileData);
             }
         } catch (\Exception $e) {
-            error_log("Failed to sync vendor profile for vendor {$vendor['id']}: " . $e->getMessage());
+            error_log("Failed to sync vendor profile for vendor {$vendor['id']} (Account: {$this->netsuite->getAccountId()}, URL: {$this->netsuite->getBaseUrl()}): " . $e->getMessage());
         }
     }
 
@@ -261,7 +261,7 @@ class SyncService {
 
             } catch (\Exception $e) {
                 $stats['failed']++;
-                error_log("Failed to sync dealer {$dealer['id']}: " . $e->getMessage());
+                error_log("Failed to sync dealer {$dealer['id']} (Account: {$this->netsuite->getAccountId()}, URL: {$this->netsuite->getBaseUrl()}): " . $e->getMessage());
             }
         }
 
@@ -369,7 +369,7 @@ class SyncService {
 
             } catch (\Exception $e) {
                 $stats['failed']++;
-                error_log("Failed to sync buyer {$buyer['id']}: " . $e->getMessage());
+                error_log("Failed to sync buyer {$buyer['id']} (Account: {$this->netsuite->getAccountId()}, URL: {$this->netsuite->getBaseUrl()}): " . $e->getMessage());
             }
         }
 
@@ -426,7 +426,7 @@ class SyncService {
 
                 } catch (\Exception $e) {
                     $stats['failed']++;
-                    error_log("Failed to sync PO {$po['id']}: " . $e->getMessage() . "\nStack: " . $e->getTraceAsString());
+                    error_log("Failed to sync PO {$po['id']} (Account: {$this->netsuite->getAccountId()}, URL: {$this->netsuite->getBaseUrl()}): " . $e->getMessage() . "\nStack: " . $e->getTraceAsString());
                 }
                 
                 // Commit every 10 records to avoid long transactions
@@ -549,9 +549,12 @@ class SyncService {
             'currency' => $poDetails['currency']['refName'] ?? 'USD',
             'created_date' => isset($poDetails['createdDate']) ? date('Y-m-d', strtotime($poDetails['createdDate'])) : null,
             'due_date' => $poDetails['dueDate'] ?? null,
-            'port_date' => $poDetails['custbody_port_date'] ?? null,
-            'estimated_delivery_date' => $poDetails['custcol_est_delivery_date'] ?? null,
-            'ship_date' => $poDetails['shipDate'] ?? null,
+            'vessel_name' => $poDetails['custbodyvessel_name'] ?? null,
+            'vessel_identifier' => $poDetails['custbodyvessel_identifier'] ?? null,
+            'expected_factory_date' => isset($poDetails['custbodyexpected_factory_date']) ? date('Y-m-d', strtotime($poDetails['custbodyexpected_factory_date'])) : null,
+            'port_date' => $poDetails['custbodyvessel_onboard_date'] ?? null,
+            'estimated_delivery_date' => $poDetails['custbodyus_delivery_date'] ?? null,
+            'ship_date' => $poDetails['custbodyvessel_ship_date'] ?? null,
             'location' => $location,
             'department' => $department,
             'is_synced_to_netsuite' => 1,
@@ -650,7 +653,7 @@ class SyncService {
 
                 } catch (\Exception $e) {
                     $stats['failed']++;
-                    error_log("Failed to sync item {$item['id']}: " . $e->getMessage());
+                    error_log("Failed to sync item {$item['id']} (Account: {$this->netsuite->getAccountId()}, URL: {$this->netsuite->getBaseUrl()}): " . $e->getMessage());
                 }
             }
 

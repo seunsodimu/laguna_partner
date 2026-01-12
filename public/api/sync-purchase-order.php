@@ -150,8 +150,9 @@ try {
     }
     
     $syncService = new SyncService($config);
+    $nsClient = new NetSuiteClient();
     
-    error_log("Starting PO sync for PO ID: $po_id via $authMethod");
+    error_log("Starting PO sync for PO ID: $po_id via $authMethod (Account: {$nsClient->getAccountId()}, URL: {$nsClient->getBaseUrl()}, Env: {$nsClient->getEnvironment()})");
     
     $result = $syncService->syncSinglePurchaseOrder($po_id);
     
@@ -176,6 +177,8 @@ try {
         error_log("Rollback error: " . $rollbackError->getMessage());
     }
     
+    $nsClient = new NetSuiteClient();
+    
     ob_clean();
     http_response_code(500);
     echo json_encode([
@@ -183,6 +186,6 @@ try {
         'message' => 'Sync failed: ' . $e->getMessage(),
         'po_id' => $po_id ?? null
     ]);
-    error_log("PO sync error for ID $po_id: " . $e->getMessage());
+    error_log("PO sync error for ID $po_id (Account: {$nsClient->getAccountId()}, URL: {$nsClient->getBaseUrl()}, Env: {$nsClient->getEnvironment()}): " . $e->getMessage());
 }
 ?>

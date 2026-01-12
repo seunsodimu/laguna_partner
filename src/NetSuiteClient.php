@@ -25,6 +25,27 @@ class NetSuiteClient {
     }
 
     /**
+     * Get account ID for debugging/logging
+     */
+    public function getAccountId() {
+        return $this->accountId;
+    }
+
+    /**
+     * Get base URL for debugging/logging
+     */
+    public function getBaseUrl() {
+        return $this->baseUrl;
+    }
+
+    /**
+     * Get environment for debugging/logging
+     */
+    public function getEnvironment() {
+        return $this->environment;
+    }
+
+    /**
      * Generate OAuth 1.0 signature for NetSuite
      */
     private function generateOAuthHeader($url, $method = 'GET') {
@@ -176,7 +197,7 @@ class NetSuiteClient {
 
         if ($httpCode >= 400) {
             $errorMsg = "NetSuite API Error (HTTP $httpCode): " . $response;
-            error_log($errorMsg);
+            error_log("NetSuite API Error (HTTP $httpCode) | Account: {$this->accountId}, URL: {$this->baseUrl}, Env: {$this->environment}: " . $response);
             throw new \Exception($errorMsg);
         }
 

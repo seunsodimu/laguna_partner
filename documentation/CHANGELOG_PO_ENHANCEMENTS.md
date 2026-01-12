@@ -12,9 +12,9 @@ Three new fields added to `purchase_orders` table for better order tracking:
 
 | Field | Type | NetSuite Field | Purpose |
 |-------|------|-----------------|---------|
-| `vessel_name` | VARCHAR(255) | custbody36 | Name of the vessel/carrier for shipment |
-| `vessel_identifier` | VARCHAR(100) | custbody37 | Identification code for the vessel |
-| `expected_factory_date` | DATE | custbody35 | Expected date of manufacture/factory completion |
+| `vessel_name` | VARCHAR(255) | custbodyvessel_name | Name of the vessel/carrier for shipment |
+| `vessel_identifier` | VARCHAR(100) | custbodyvessel_identifier | Identification code for the vessel |
+| `expected_factory_date` | DATE | custbodyexpected_factory_date | Expected date of manufacture/factory completion |
 
 #### Document Type Field
 New field added to `po_documents` table:

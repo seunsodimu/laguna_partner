@@ -457,9 +457,12 @@ function approveChanges($db, $userType, $userId, $data) {
         
         // Update PO in NetSuite
         $updateData = [];
-        if ($po['port_date']) $updateData['custbody7'] = $po['port_date'];
-        if ($po['estimated_delivery_date']) $updateData['custcol_est_delivery_date'] = $po['estimated_delivery_date'];
-        if ($po['ship_date']) $updateData['shipdate'] = $po['ship_date'];
+        if ($po['vessel_name']) $updateData['custbodyvessel_name'] = $po['vessel_name'];
+        if ($po['vessel_identifier']) $updateData['custbodyvessel_identifier'] = $po['vessel_identifier'];
+        if ($po['expected_factory_date']) $updateData['custbodyexpected_factory_date'] = $po['expected_factory_date'];
+        if ($po['port_date']) $updateData['custbodyvessel_onboard_date'] = $po['port_date'];
+        if ($po['estimated_delivery_date']) $updateData['custbodyus_delivery_date'] = $po['estimated_delivery_date'];
+        if ($po['ship_date']) $updateData['custbodyvessel_ship_date'] = $po['ship_date'];
         
         $nsClient->updateRecord('purchaseOrder', $po['id'], $updateData);
         

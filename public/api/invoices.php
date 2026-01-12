@@ -1518,7 +1518,12 @@ function syncInvoiceToNetSuite($db, $invoiceId, $departmentId, $locationId, $pos
 
         return false;
     } catch (Exception $e) {
-        error_log("Failed to sync invoice $invoiceId to NetSuite: " . $e->getMessage());
+        $env = strtoupper($_ENV['NETSUITE_ENVIRONMENT'] ?? 'SANDBOX');
+        $account_key = 'NETSUITE_' . $env . '_ACCOUNT_ID';
+        $base_url_key = 'NETSUITE_' . $env . '_BASE_URL';
+        $accountId = $_ENV[$account_key] ?? 'Unknown';
+        $baseUrl = $_ENV[$base_url_key] ?? 'Unknown';
+        error_log("Failed to sync invoice $invoiceId to NetSuite (Account: $accountId, URL: $baseUrl, Env: $env): " . $e->getMessage());
         throw $e;
     }
 }
@@ -1622,7 +1627,12 @@ function createVendorBillInNetSuite($payload) {
     }
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        error_log("NetSuite API Error (HTTP $httpCode): $response");
+        $env = strtoupper($_ENV['NETSUITE_ENVIRONMENT'] ?? 'SANDBOX');
+        $account_key = 'NETSUITE_' . $env . '_ACCOUNT_ID';
+        $base_url_key = 'NETSUITE_' . $env . '_BASE_URL';
+        $accountId = $_ENV[$account_key] ?? 'Unknown';
+        $baseUrl = $_ENV[$base_url_key] ?? 'Unknown';
+        error_log("NetSuite API Error (HTTP $httpCode) | Account: $accountId, URL: $baseUrl, Env: $env: $response");
         
         $errorMessage = "NetSuite API Error: HTTP $httpCode";
         
